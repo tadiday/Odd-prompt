@@ -39,7 +39,10 @@
             :class="{ imposter: player.role === 'imposter' }"
           >
             <div class="player">
-              <i>{{ player.username.charAt(0).toUpperCase() }}</i>
+              <PlayerAvatar
+                :avatar-id="player.avatarId"
+                :player-name="player.username"
+              />
               <strong>{{ player.username }}</strong>
             </div>
             <b>{{ player.role === 'imposter' ? '♜ IMPOSTER' : '♟ INNOCENT' }}</b>
@@ -65,6 +68,7 @@
 import { computed } from 'vue'
 import { useGameStore } from '../../stores/game'
 import ProgressiveFooter from './ProgressiveFooter.vue'
+import PlayerAvatar from '../PlayerAvatar.vue'
 const gameStore = useGameStore()
 const results = computed(() => gameStore.votingResults ?? null)
 const actualPrompt = computed(
@@ -95,9 +99,6 @@ const resultPlayers = computed(() =>
   }))
 )
 
-function getPlayerName(id: string) {
-  return gameStore.roomPlayers.find((player) => player.id === id)?.username ?? id
-}
 </script>
 
 <style scoped>
@@ -126,23 +127,22 @@ header span { font-size: 1.7rem; }
 .next-round-action button:hover { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
 .next-round-action p { margin: 0; color: #666; font-size: 0.75rem; font-weight: 700; }
 .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 820px; margin: 0 auto 24px; }
-.summary-grid article { position: relative; display: grid; min-height: 110px; place-content: center; padding: 14px; border: 2px solid #111; border-radius: 12px; text-align: center; }
+.summary-grid article { position: relative; display: grid; min-height: 110px; place-content: center; padding: 14px; border: 3px solid #111; border-radius: 12px; text-align: center; }
 .summary-grid article.odd { border-color: var(--red); background: #fff7f7; }
 .summary-grid small, .winner-card small { font-size: 0.75rem; font-weight: 900; }
 .summary-grid strong { margin-top: 5px; font-size: 1.1rem; }
-.summary-grid .medal { position: absolute; top: -17px; left: 17px; display: grid; width: 36px; height: 36px; place-items: center; border: 2px solid #111; border-radius: 50%; background: #ffc928; color: #ef1823 !important; }
+.summary-grid .medal { position: absolute; top: -17px; left: 17px; display: grid; width: 36px; height: 36px; place-items: center; border: 3px solid #111; border-radius: 50%; background: #ffc928; color: #ef1823 !important; }
 .results-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 22px; }
-.table-wrap { overflow: hidden; border: 1px solid #ddd; border-radius: 10px; }
+.table-wrap { overflow: hidden; border: 3px solid #ddd; border-radius: 10px; }
 .table-head, .table-wrap article { display: grid; grid-template-columns: 1.25fr 0.9fr 1.5fr 0.65fr; align-items: center; }
 .table-head { padding: 10px 15px; background: #fafafa; font-size: 0.68rem; font-weight: 900; }
-.table-wrap article { min-height: 60px; padding: 8px 15px; border-top: 1px solid #ddd; font-size: 0.92rem; }
+.table-wrap article { min-height: 60px; padding: 8px 15px; border-top: 3px solid #ddd; font-size: 0.92rem; }
 .player { display: flex; align-items: center; gap: 10px; }
-.player i { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid #111; border-radius: 50%; font-style: normal; font-weight: 900; }
 .table-wrap article > b { color: #1ca54c; font-size: 0.75rem; }
 .table-wrap article.imposter > b { color: var(--red); }
 .table-wrap article p { margin: 0; }
 .votes { font-size: 1rem; font-weight: 900; text-align: center; }
-.winner-card { display: grid; min-height: 210px; place-content: center; padding: 18px; border: 2px solid #111; border-radius: 12px; text-align: center; }
+.winner-card { display: grid; min-height: 210px; place-content: center; padding: 18px; border: 3px solid #111; border-radius: 12px; text-align: center; }
 .winner-card strong { margin: 12px 0; color: #10a240 !important; font-size: 1.5rem; }
 .winner-card div { font-size: 3.5rem; }
 .winner-card.imposter-win { border-color: var(--red); background: #fff7f7; }

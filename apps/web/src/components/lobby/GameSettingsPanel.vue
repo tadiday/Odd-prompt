@@ -126,7 +126,7 @@ function onTextChange(key: string, event: Event) {
   justify-content: space-between;
   align-items: center;
 
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 3px solid #e5e5e5;
 }
 
 .setting-row:last-child {
@@ -146,7 +146,7 @@ function onTextChange(key: string, event: Event) {
 
   box-sizing: border-box;
 
-  border: 1.5px solid #aaa;
+  border: 3px solid #aaa;
   border-radius: 8px;
 
   background: #fff;

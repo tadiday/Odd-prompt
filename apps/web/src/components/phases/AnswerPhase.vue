@@ -110,7 +110,7 @@ watch(
   right: 72px;
   min-width: 150px;
   padding: 12px 18px;
-  border: 2px solid var(--red);
+  border: 3px solid var(--red);
   border-radius: 12px;
   text-align: center;
 }
@@ -122,14 +122,14 @@ watch(
   max-width: 820px;
   margin: auto;
   overflow: hidden;
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 14px;
 }
 
 .answer-card h2 {
   margin: 0;
   padding: 19px 24px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 3px solid #ddd;
   color: var(--red) !important;
   text-align: center;
   font-size: 1.35rem;

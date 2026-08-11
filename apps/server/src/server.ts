@@ -7,6 +7,7 @@ const preferredPort = Number(process.env.PORT ?? 3001);
 interface PlayerSession {
   id: string;
   username: string;
+  avatarId: string;
   roomCode: string;
   socket?: WebSocket;
   isHost: boolean;
@@ -99,6 +100,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       const session: PlayerSession = {
         id: uuidv4(),
         username: message.payload?.hostName || 'Host',
+        avatarId: normalizeAvatarId(message.payload?.avatarId),
         roomCode,
         socket,
         isHost: true,
@@ -112,6 +114,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
         id: session.id,
         roomId: roomCode,
         username: session.username,
+        avatarId: session.avatarId,
         isHost: session.isHost,
         isImposter: session.isImposter,
         isConnected: session.isConnected,
@@ -162,6 +165,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       const session: PlayerSession = {
         id: uuidv4(),
         username: message.payload?.playerName || 'Player',
+        avatarId: normalizeAvatarId(message.payload?.avatarId),
         roomCode: room.code,
         socket,
         isHost: false,
@@ -175,6 +179,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
         id: session.id,
         roomId: room.code,
         username: session.username,
+        avatarId: session.avatarId,
         isHost: session.isHost,
         isImposter: session.isImposter,
         isConnected: session.isConnected,
@@ -618,4 +623,15 @@ function assignPromptsToRoom(room: Room): PromptAssignment[] {
 
 function generateRoomCode() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+function normalizeAvatarId(value: unknown) {
+  const avatarId = String(value ?? 'cool-cat');
+  const allowedAvatarIds = new Set([
+    'cool-cat', 'cool-dog', 'cool-panda', 'cool-mouse',
+    'cool-parrot', 'cool-bear', 'cool-rabbit', 'cool-fox',
+    'cool-shiba', 'cool-lion', 'cool-cow', 'cool-owl'
+  ]);
+
+  return allowedAvatarIds.has(avatarId) ? avatarId : 'cool-cat';
 }

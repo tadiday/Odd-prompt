@@ -21,9 +21,10 @@
             class="answer-card"
         >
             <div class="player-row">
-            <div class="avatar">
-                {{ getPlayerName(answer.playerId).charAt(0).toUpperCase() }}
-            </div>
+            <PlayerAvatar
+              :avatar-id="getPlayer(answer.playerId)?.avatarId"
+              :player-name="getPlayerName(answer.playerId)"
+            />
 
             <strong>
                 {{ getPlayerName(answer.playerId) }}
@@ -40,15 +41,16 @@
 
 <script setup lang="ts">
 import { useGameStore } from '../../stores/game'
+import PlayerAvatar from '../PlayerAvatar.vue'
 
 const gameStore = useGameStore()
 
 function getPlayerName(playerId: string) {
-  return (
-    gameStore.roomPlayers.find(
-      (player) => player.id === playerId
-    )?.username ?? playerId
-  )
+  return getPlayer(playerId)?.username ?? playerId
+}
+
+function getPlayer(playerId: string) {
+  return gameStore.roomPlayers.find((player) => player.id === playerId)
 }
 </script>
 
@@ -129,7 +131,7 @@ function getPlayerName(playerId: string) {
   background: #ef1823;
   color: #fff;
 
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 50%;
 
   font-weight: 900;

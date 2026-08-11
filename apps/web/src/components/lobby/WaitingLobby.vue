@@ -5,11 +5,6 @@
     ========================================= -->
     <section class="panel lobby-card">
       <div class="panel-header lobby-header">
-        <div>
-          <span class="panel-label">ROOM</span>
-          <h2>LOBBY</h2>
-        </div>
-
         <div class="room-code">
           <span>ROOM CODE</span>
           <strong>{{ roomCode }}</strong>
@@ -42,9 +37,10 @@
           class="player-row"
         >
           <div class="player-main">
-            <div class="avatar">
-              {{ getInitial(player.username) }}
-            </div>
+            <PlayerAvatar
+              :avatar-id="player.avatarId"
+              :player-name="player.username"
+            />
 
             <div class="player-name">
               <strong>{{ player.username }}</strong>
@@ -227,6 +223,7 @@ import { computed } from 'vue'
 import GameModeSelector from './GameModeSelector.vue'
 import GameSettingsPanel from './GameSettingsPanel.vue'
 import ProgressiveFooter from '../phases/ProgressiveFooter.vue'
+import PlayerAvatar from '../PlayerAvatar.vue'
 
 import {
   GAME_MODES,
@@ -238,6 +235,7 @@ import { useGameStore } from '../../stores/game'
 type Player = {
   id: string
   username: string
+  avatarId: string
   isHost: boolean
 }
 
@@ -329,13 +327,6 @@ function handleModeSettingChange(
   )
 }
 
-function getInitial(username: string) {
-  return (
-    username?.charAt(0)?.toUpperCase()
-    || '?'
-  )
-}
-
 async function copyRoomCode() {
   try {
     await navigator.clipboard?.writeText(
@@ -384,7 +375,7 @@ async function copyRoomCode() {
   min-width: 0;
   min-height: 0;
   background: #fff;
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 14px;
   box-shadow: 0 7px 18px #0000000a;
   overflow: hidden;
@@ -410,7 +401,7 @@ async function copyRoomCode() {
 
   gap: 15px;
 
-  border-bottom: 1px solid #dedede;
+  border-bottom: 3px solid #dedede;
   background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%);
 
   box-sizing: border-box;
@@ -439,7 +430,7 @@ async function copyRoomCode() {
 .view-only {
   padding: 6px 8px;
 
-  border: 1px solid #ccc;
+  border: 3px solid #ccc;
   border-radius: 6px;
 
   background: #f5f5f5;
@@ -458,17 +449,14 @@ async function copyRoomCode() {
 
 .lobby-header {
   display: grid;
-
-  grid-template-columns:
-    minmax(90px, 1fr)
-    auto
-    minmax(90px, 1fr);
-
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  gap: 16px;
 }
 
 .room-code {
-  text-align: center;
+  min-width: 0;
+  text-align: left;
 }
 
 .room-code span {
@@ -482,15 +470,15 @@ async function copyRoomCode() {
 
 .room-code strong {
   display: block;
-
   margin-top: 3px;
-
+  overflow: hidden;
   color: #ff1022 !important;
-
-  font-size: 1.65rem;
+  font-size: 1.5rem;
   font-weight: 900;
-
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 
@@ -543,7 +531,7 @@ async function copyRoomCode() {
 
   gap: 15px;
 
-  border-bottom: 1px solid #ddd;
+  border-bottom: 3px solid #ddd;
 }
 
 .waiting-left {
@@ -658,7 +646,7 @@ async function copyRoomCode() {
 
   gap: 10px;
 
-  border: 1px solid #d5d5d5;
+  border: 3px solid #d5d5d5;
   border-radius: 9px;
 
   box-sizing: border-box;
@@ -770,7 +758,7 @@ async function copyRoomCode() {
 ========================================= */
 
 .player-row.empty {
-  border: 1.5px dashed #c5c5c5;
+  border: 3px dashed #c5c5c5;
   background: #fafafa;
 
   color: #777 !important;
@@ -808,7 +796,7 @@ async function copyRoomCode() {
 
   padding: 14px;
 
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 9px;
 
   background: #ff1022;
@@ -861,7 +849,7 @@ async function copyRoomCode() {
 .waiting-host {
   padding: 14px;
 
-  border: 1.5px dashed #aaa;
+  border: 3px dashed #aaa;
   border-radius: 8px;
 
   color: #666 !important;
@@ -918,7 +906,7 @@ async function copyRoomCode() {
 .about-mode {
   margin-top: 22px;
   padding: 18px;
-  border: 1px solid #e1e1e1;
+  border: 3px solid #e1e1e1;
   border-radius: 10px;
   background: #fafafa;
 }
@@ -947,7 +935,7 @@ async function copyRoomCode() {
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 50%;
   font-family: serif;
   font-size: 0.7rem;
@@ -995,7 +983,7 @@ async function copyRoomCode() {
 .alert {
   margin: 0 20px 9px;
   padding: 10px 12px;
-  border: 1px solid #ff1022;
+  border: 3px solid #ff1022;
   border-radius: 8px;
   background: #fff4f4;
   color: #b80a17 !important;
@@ -1062,9 +1050,6 @@ async function copyRoomCode() {
     grid-template-columns: 1fr auto;
   }
 
-  .lobby-header > div:first-child {
-    display: none;
-  }
 }
 
 

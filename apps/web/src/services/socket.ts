@@ -22,10 +22,12 @@ class GameSocketService {
   }
 
   disconnect() {
-    this.socket?.close();
+    const socket = this.socket;
     this.socket = null;
     this.connectionState.status = 'disconnected';
+    this.pendingAttempt = 0;
     this.sendQueue = [];
+    socket?.close();
   }
 
   on(event: string, handler: SocketEventHandler) {
@@ -60,15 +62,25 @@ class GameSocketService {
       return;
     }
 
-    this.socket = new WebSocket(`ws://localhost:${port}`);
+    const socket = new WebSocket(`ws://localhost:${port}`);
+    this.socket = socket;
 
-    this.socket.addEventListener('open', () => {
+    socket.addEventListener('open', () => {
+      if (this.socket !== socket) {
+        socket.close();
+        return;
+      }
+
       this.connectionState.status = 'connected';
       this.emit('connected', { port });
       this.flushQueue();
     });
 
-    this.socket.addEventListener('message', (event) => {
+    socket.addEventListener('message', (event) => {
+      if (this.socket !== socket) {
+        return;
+      }
+
       try {
         const message = JSON.parse(event.data);
         this.emit(message.type, message.payload);
@@ -77,22 +89,19 @@ class GameSocketService {
       }
     });
 
-    this.socket.addEventListener('close', () => {
-      if (this.socket?.readyState !== WebSocket.OPEN) {
-        this.pendingAttempt += 1;
-        this.connectToNextPort();
+    socket.addEventListener('close', () => {
+      if (this.socket !== socket) {
+        return;
       }
-      if (this.socket?.readyState === WebSocket.CLOSED) {
-        this.connectionState.status = 'disconnected';
-        this.emit('disconnected', { reason: 'socketClosed' });
-      }
+
+      this.socket = null;
+      this.pendingAttempt += 1;
+      this.connectToNextPort();
     });
 
-    this.socket.addEventListener('error', () => {
-      if (this.socket?.readyState !== WebSocket.OPEN) {
-        this.pendingAttempt += 1;
-        this.connectToNextPort();
-      }
+    socket.addEventListener('error', () => {
+      // A failed WebSocket emits `close` next. Port fallback is handled there
+      // so a single failure cannot start multiple connection attempts.
     });
   }
 

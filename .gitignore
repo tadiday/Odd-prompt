@@ -7,6 +7,7 @@ pnpm-lock.yaml
 # Build artifacts & caches
 dist/
 build/
+*.tsbuildinfo
 .vite/
 .turbo/
 .next/
@@ -72,6 +73,8 @@ apps/*/dist/
 apps/*/build/
 packages/*/dist/
 packages/*/build/
+apps/web/vite.config.js
+apps/web/vite.config.d.ts
 
 # IDE cache directories
 **/.vscode/

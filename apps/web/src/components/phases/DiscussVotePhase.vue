@@ -24,7 +24,10 @@
         </div>
         <div v-else class="answer-list">
           <article v-for="answer in revealAnswers" :key="answer.playerId">
-            <div class="avatar">{{ getInitial(answer.playerId) }}</div>
+            <PlayerAvatar
+              :avatar-id="getPlayer(answer.playerId)?.avatarId"
+              :player-name="getPlayerName(answer.playerId)"
+            />
             <strong>
               {{ getPlayerName(answer.playerId) }}
               <em v-if="answer.playerId === gameStore.currentPlayer?.id">(You)</em>
@@ -44,7 +47,10 @@
           :disabled="!canVote"
           @click="selectedVote = player.id"
         >
-          <span class="avatar">{{ getInitial(player.id) }}</span>
+          <PlayerAvatar
+            :avatar-id="player.avatarId"
+            :player-name="player.username"
+          />
           <strong>{{ player.username }}</strong>
           <i></i>
         </button>
@@ -69,6 +75,7 @@
 import { computed, ref, watch } from 'vue'
 import { useGameStore } from '../../stores/game'
 import ProgressiveFooter from './ProgressiveFooter.vue'
+import PlayerAvatar from '../PlayerAvatar.vue'
 const gameStore = useGameStore()
 const selectedVote = ref<string | null>(null)
 const revealAnswers = computed(() => gameStore.revealAnswers ?? [])
@@ -93,11 +100,11 @@ const eligiblePlayers = computed(() =>
 )
 
 function getPlayerName(id: string) {
-  return gameStore.roomPlayers.find((player) => player.id === id)?.username ?? id
+  return getPlayer(id)?.username ?? id
 }
 
-function getInitial(id: string) {
-  return getPlayerName(id).charAt(0).toUpperCase()
+function getPlayer(id: string) {
+  return gameStore.roomPlayers.find((player) => player.id === id)
 }
 
 function submitVote() {
@@ -144,7 +151,7 @@ watch(
 .top-row { display: flex; align-items: center; justify-content: space-between; }
 .top-row > p { font-size: 0.95rem; font-weight: 800; }
 .timers { display: flex; gap: 14px; }
-.timers > div { min-width: 128px; padding: 11px 14px; border: 2px solid #111; border-radius: 11px; text-align: center; }
+.timers > div { min-width: 128px; padding: 11px 14px; border: 3px solid #111; border-radius: 11px; text-align: center; }
 .timers .red { border-color: var(--red); }
 .timers .muted { opacity: 0.5; }
 .timers small { display: block; font-size: 0.65rem; font-weight: 900; line-height: 1.1; }
@@ -154,12 +161,12 @@ watch(
 .phase-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(330px, 0.75fr); gap: 26px; }
 .answers-panel > h2, .vote-panel > h2 { margin: 0 0 12px; font-size: 0.88rem; }
 .answer-list { display: grid; gap: 10px; }
-.answer-list article { display: grid; grid-template-columns: 44px 190px 1fr; align-items: center; min-height: 58px; padding: 8px 13px; border: 1px solid #ddd; border-radius: 9px; }
-.avatar { display: grid; width: 36px; height: 36px; place-items: center; border: 2px solid #111; border-radius: 50%; background: #f5f5f5; font-size: 0.88rem; font-weight: 900; }
+.answer-list article { display: grid; grid-template-columns: 44px 190px 1fr; align-items: center; min-height: 58px; padding: 8px 13px; border: 3px solid #ddd; border-radius: 9px; }
+.avatar { display: grid; width: 36px; height: 36px; place-items: center; border: 3px solid #111; border-radius: 50%; background: #f5f5f5; font-size: 0.88rem; font-weight: 900; }
 .answer-list strong { font-size: 0.95rem; }
 .answer-list em { color: var(--red); font-size: 0.78rem; font-style: normal; }
 .answer-list p { margin: 0; font-size: 1rem; }
-.vote-panel { padding: 19px; border: 2px solid #111; border-radius: 12px; }
+.vote-panel { padding: 19px; border: 3px solid #111; border-radius: 12px; }
 .vote-panel > h2 { text-align: center; font-size: 0.95rem; }
 .vote-panel > p { margin: 0 0 13px; text-align: center; font-size: 0.78rem; }
 .vote-panel > button:not(.submit):not(.skip) { display: flex; width: 100%; align-items: center; gap: 11px; padding: 8px; border: 0; background: #fff; cursor: pointer; }

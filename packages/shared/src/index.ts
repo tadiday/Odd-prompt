@@ -21,6 +21,7 @@ export interface Player {
   id: string;
   roomId?: string;
   username: string;
+  avatarId: string;
   isHost: boolean;
   isImposter: boolean;
   isConnected: boolean;
@@ -67,12 +68,14 @@ export interface Vote {
 
 export interface CreateRoomPayload {
   hostName: string;
+  avatarId: string;
   options: RoomOptions;
 }
 
 export interface JoinRoomPayload {
   roomCode: string;
   playerName: string;
+  avatarId: string;
 }
 
 export interface StartGamePayload {

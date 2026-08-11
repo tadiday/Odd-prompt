@@ -201,7 +201,7 @@ export const useGameStore = defineStore('game', () => {
     return currentPlayer.value.isHost || currentRoom.value.hostId === currentPlayer.value.id;
   });
 
-  function createRoom(hostName: string) {
+  function createRoom(hostName: string, avatarId: string) {
     const options: RoomOptions = {
       imposterCount: 1,
       answerTimerSeconds: 3600,
@@ -213,14 +213,18 @@ export const useGameStore = defineStore('game', () => {
     leaveRoom();
     errorMessage.value = null;
     socketService.connect();
-    socketService.send(WS_EVENT.createRoom, { hostName, options });
+    socketService.send(WS_EVENT.createRoom, { hostName, avatarId, options });
   }
 
-  function joinRoom(roomCodeInput: string, playerName: string) {
+  function joinRoom(roomCodeInput: string, playerName: string, avatarId: string) {
     leaveRoom();
     errorMessage.value = null;
     socketService.connect();
-    socketService.send(WS_EVENT.joinRoom, { roomCode: roomCodeInput, playerName });
+    socketService.send(WS_EVENT.joinRoom, {
+      roomCode: roomCodeInput,
+      playerName,
+      avatarId
+    });
   }
 
   function leaveRoom() {

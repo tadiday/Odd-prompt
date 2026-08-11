@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useGameStore } from '../stores/game';
 import LobbyHeader from '../components/lobby/LobbyHeader.vue'
 import WaitingLobby from '../components/lobby/WaitingLobby.vue'
@@ -67,8 +67,11 @@ watch(() => [gameStore.roomStatus, gameStore.phaseCountdown], ([status, countdow
 
 const router = useRouter()
 
-function leaveRoom() {
+onBeforeRouteLeave(() => {
   gameStore.leaveRoom()
+})
+
+function leaveRoom() {
   router.push('/')
 }
 
@@ -122,7 +125,7 @@ function updateRoomSetting(setting: string, value: number) {
   padding: 0 24px 24px;
   box-sizing: border-box;
   overflow: hidden;
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 18px;
   background: #fff;
   box-shadow: 0 4px 14px #00000014;

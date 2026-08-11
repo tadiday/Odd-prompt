@@ -76,7 +76,7 @@ const activeIndex = computed(() =>
   width: 15px;
   height: 15px;
   place-items: center;
-  border: 2px solid #aaa;
+  border: 3px solid #aaa;
   border-radius: 50%;
   background: #fff;
   color: #fff;
