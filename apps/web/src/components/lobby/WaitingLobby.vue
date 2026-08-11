@@ -1,14 +1,11 @@
 <template>
   <div class="waiting-layout">
-
-    <!-- LEFT SIDE -->
+    <!-- LEFT -->
     <section class="lobby-card">
 
-      <!-- Room Code Header -->
+      <!-- Room Code -->
       <div class="room-topbar">
-        <button class="text-button" @click="router.back()">
-          ← LEAVE ROOM
-        </button>
+        <div></div>
 
         <div class="room-code">
           <span>ROOM CODE</span>
@@ -16,55 +13,52 @@
         </div>
 
         <button class="outline-button" @click="copyRoomCode">
-          ⧉ COPY CODE
+          🔗 COPY CODE
         </button>
       </div>
 
       <!-- Waiting -->
       <div class="waiting-banner">
-        <div class="spinner"></div>
+        <div class="waiting-left">
+          <div class="spinner"></div>
 
-        <div>
-          <h2>WAITING FOR PLAYERS...</h2>
-          <p>
-            The host can start the game when everyone is ready!
-          </p>
+          <div>
+            <h2>WAITING FOR PLAYERS...</h2>
+            <p>The host can start the game when everyone is ready!</p>
+          </div>
+        </div>
+
+        <div v-if="isHost" class="host-label">
+          ♛ YOU ARE HOST
         </div>
       </div>
 
-      <!-- Player Header -->
+      <!-- Players header -->
       <div class="players-header">
         <h3>
-          👥 PLAYERS ({{ players.length }}/{{ maxPlayers }})
+          <span class="players-icon">👥</span>
+          PLAYERS ({{ players.length }}/{{ maxPlayers }})
         </h3>
-
-        <span v-if="isHost" class="host-label">
-          ♛ YOU ARE HOST
-        </span>
       </div>
 
       <!-- Players -->
       <div class="player-list">
-
         <div
           v-for="player in players"
           :key="player.id"
           class="player-row"
         >
           <div class="player-main">
-
             <div class="avatar">
               {{ getInitial(player.username) }}
             </div>
 
             <strong>
               {{ player.username }}
-
               <span v-if="player.id === currentPlayerId">
                 (You)
               </span>
             </strong>
-
           </div>
 
           <span
@@ -82,39 +76,35 @@
           </span>
         </div>
 
-        <!-- Empty Slots -->
+        <!-- Empty slots -->
         <div
           v-for="slot in emptySlots"
           :key="`empty-${slot}`"
           class="player-row empty"
         >
           <div class="player-main">
-
             <div class="avatar empty-avatar">
               ?
             </div>
 
             <span>Waiting for player...</span>
-
           </div>
         </div>
-
       </div>
 
-      <!-- Error -->
       <div v-if="errorMessage" class="alert">
         {{ errorMessage }}
       </div>
 
       <!-- Start -->
       <div class="start-area">
-
         <button
           v-if="isHost"
           class="primary-button"
           @click="emit('start')"
         >
-          ▶ START GAME
+          <span class="play-icon">▶</span>
+          START GAME
         </button>
 
         <div v-else class="waiting-host">
@@ -122,40 +112,66 @@
         </div>
 
         <small v-if="isHost">
-          Start when everyone is in the room.
+          Game will start when everyone is ready
         </small>
-
       </div>
-
     </section>
 
 
-    <!-- RIGHT SIDE -->
+    <!-- RIGHT -->
     <aside class="side-card">
-
       <div class="tabs">
-        <button :class="['tab', { active: currentTab === 'mode' }]" @click="currentTab = 'mode'">GAME MODE</button>
-        <button :class="['tab', { active: currentTab === 'settings' }]" @click="currentTab = 'settings'">GAME SETTINGS</button>
+        <button
+          :class="['tab', { active: currentTab === 'mode' }]"
+          @click="currentTab = 'mode'"
+        >
+          GAME MODE
+        </button>
+
+        <button
+          :class="['tab', { active: currentTab === 'settings' }]"
+          @click="currentTab = 'settings'"
+        >
+          GAME SETTINGS
+        </button>
       </div>
 
-      <section class="side-section tab-panel">
+      <section class="side-section">
         <div v-if="currentTab === 'mode'">
-          <GameModeSelector :selected="currentModeKey" @select="selectMode" />
+          <p class="section-description">
+            Choose how you want to play!
+          </p>
+
+          <GameModeSelector
+            :selected="currentModeKey"
+            @select="selectMode"
+          />
 
           <div class="about-mode">
-            <h4>ABOUT {{ GAME_MODES[currentModeKey]?.name ?? 'Mode' }}</h4>
-            <p>{{ GAME_MODES[currentModeKey]?.description }}</p>
+            <h4>
+              <span class="info-icon">i</span>
+              ABOUT {{ GAME_MODES[currentModeKey]?.name?.toUpperCase() ?? 'MODE' }}
+            </h4>
+
+            <p v-if="currentModeKey === 'classic'">
+              Randomly assigned imposters will receive a different prompt.<br />
+              Discuss, vote, and find the imposters!
+            </p>
+
+            <p v-else>
+              {{ GAME_MODES[currentModeKey]?.description }}
+            </p>
           </div>
         </div>
 
-        <div v-else>
-          <GameSettingsPanel
-            :modeKey="currentModeKey"
-            :roomOptions="gameStore.currentRoom?.options"
-            @change-setting="handleModeSettingChange"
-          />
-        </div>
+        <GameSettingsPanel
+          v-else
+          :modeKey="currentModeKey"
+          :roomOptions="gameStore.currentRoom?.options"
+          @change-setting="handleModeSettingChange"
+        />
       </section>
+
 
     </aside>
 
@@ -248,48 +264,54 @@ function copyRoomCode() {
 <style scoped>
 .waiting-layout {
   width: 100%;
+  flex: 1;
+  min-height: 0;
+
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.85fr);
-  gap: 18px;
-  color: #111;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+
+  padding: 12px 32px 28px;
+  box-sizing: border-box;
 }
 
-.tabs {
-  display:flex;
-  border-bottom:3px solid #efefef;
-}
-.tab {
-  flex:1;
-  padding:14px 18px;
-  background:transparent;
-  border:0;
-  font-weight:900;
-  cursor:pointer;
-}
-.tab.active { border-bottom:4px solid #ef1823 }
-.tab-panel { padding-top:10px }
-.about-mode { margin-top:18px; border-top:1px solid #eee; padding-top:14px }
+
+/* =========================================
+   CARDS
+========================================= */
 
 .lobby-card,
 .side-card {
   background: #fff;
-  border: 3px solid #111;
-  border-radius: 22px;
+
+  border: 2px solid #111;
+  border-radius: 14px;
+
   overflow: hidden;
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 0;
 }
 
-/* Header */
+
+/* =========================================
+   ROOM CODE
+========================================= */
 
 .room-topbar {
-  min-height: 80px;
-  padding: 0 22px;
+  height: 84px;
+  flex-shrink: 0;
+
+  padding: 0 18px;
 
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
 
-  border-bottom: 3px solid #111;
+  border-bottom: 1px solid #cfcfcf;
 }
 
 .room-code {
@@ -298,285 +320,435 @@ function copyRoomCode() {
 
 .room-code span {
   display: block;
-  font-size: 0.7rem;
+
+  font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
 }
 
 .room-code strong {
-  color: #ef1823;
-  font-size: 1.7rem;
-}
+  display: block;
 
-.text-button {
-  justify-self: start;
-  border: 0;
-  background: transparent;
-  color: #111;
+  margin-top: 3px;
+
+  color: #ff1022 !important;
+  font-size: 1.8rem;
   font-weight: 900;
-  cursor: pointer;
+  letter-spacing: 0.04em;
 }
 
 .outline-button {
   justify-self: end;
 
-  padding: 10px 14px;
+  padding: 10px 16px;
+
+  border: 2px solid #111;
+  border-radius: 8px;
 
   background: #fff;
   color: #111;
 
-  border: 2px solid #111;
-  border-radius: 12px;
-
-  box-shadow: 3px 3px 0 #111;
-
+  font-size: 0.8rem;
   font-weight: 900;
+
   cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
-/* Waiting */
+.outline-button:hover {
+  transform: translateY(-1px);
+  background: #f7f7f7;
+}
+
+
+/* =========================================
+   WAITING BANNER
+========================================= */
 
 .waiting-banner {
-  padding: 18px 22px;
+  min-height: 76px;
+  padding: 0 24px;
 
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid #d7d7d7;
+}
+
+.waiting-left {
+  display: flex;
   align-items: center;
   gap: 14px;
 }
 
 .waiting-banner h2 {
   margin: 0;
-  color: #111;
+
   font-size: 1rem;
+  font-weight: 900;
 }
 
 .waiting-banner p {
   margin: 4px 0 0;
-  color: #555;
-  font-size: 0.8rem;
+
+  font-size: 0.72rem;
+  color: #333 !important;
 }
 
 .spinner {
-  width: 26px;
-  height: 26px;
+  width: 25px;
+  height: 25px;
 
   border: 5px dotted #111;
   border-radius: 50%;
+
+  animation: spin 2.3s linear infinite;
 }
 
-/* Players */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.host-label {
+  color: #ff1022 !important;
+
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+
+/* =========================================
+   PLAYERS
+========================================= */
 
 .players-header {
-  padding: 0 22px 10px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 17px 20px 10px;
 }
 
 .players-header h3 {
   margin: 0;
-  color: #111;
-  font-size: 0.9rem;
-}
 
-.host-label,
-.host-status {
-  color: #ef1823;
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   font-weight: 900;
 }
 
-.player-list {
-  padding: 0 22px 14px;
+.players-icon {
+  margin-right: 5px;
+}
 
-  display: grid;
-  gap: 8px;
+.player-list {
+  flex: 1;
+  min-height: 0;
+
+  padding: 0 20px 12px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  overflow-y: auto;
 }
 
 .player-row {
-  min-height: 50px;
-  padding: 0 14px 0 10px;
+  min-height: 43px;
+
+  padding: 0 14px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  border: 2px solid #111;
-  border-radius: 11px;
+  border: 1px solid #c8c8c8;
+  border-radius: 10px;
 
-  color: #111;
+  box-sizing: border-box;
 }
 
 .player-main {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
+}
+
+.player-main strong {
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .player-main strong span {
-  color: #777;
-  font-size: 0.75rem;
+  color: #555 !important;
+  font-weight: 500;
 }
 
 .avatar {
-  width: 34px;
-  height: 34px;
+  width: 29px;
+  height: 29px;
 
   display: grid;
   place-items: center;
 
-  background: #ef1823;
-  color: #fff;
-
   border: 2px solid #111;
   border-radius: 50%;
 
+  background: #ff1022;
+  color: #fff !important;
+
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.host-status {
+  color: #ff1022 !important;
+
+  font-size: 0.68rem;
   font-weight: 900;
 }
 
 .ready-status {
-  color: #1db954;
-  font-size: 0.75rem;
+  color: #16a76b !important;
+
+  font-size: 0.68rem;
   font-weight: 900;
 }
 
-/* Empty slots */
+
+/* Empty player */
 
 .player-row.empty {
-  border-color: #aaa;
-  border-style: dashed;
-  color: #777;
+  border: 1.5px dashed #c1c1c1;
+
+  color: #676767 !important;
+}
+
+.player-row.empty span {
+  color: #676767 !important;
+
+  font-size: 0.8rem;
 }
 
 .empty-avatar {
-  background: #ddd;
-  color: #777;
-  border-color: #aaa;
+  background: #e9e9e9;
+  border-color: #a8a8a8;
+
+  color: #888 !important;
 }
 
-/* Start */
+
+/* =========================================
+   START GAME
+========================================= */
 
 .start-area {
-  padding: 0 22px 20px;
+  flex-shrink: 0;
+
+  padding: 4px 20px 17px;
+
   text-align: center;
 }
 
 .primary-button {
   width: 100%;
-  padding: 15px;
 
-  background: #ef1823;
-  color: #fff;
+  padding: 14px;
 
-  border: 3px solid #111;
-  border-radius: 13px;
+  border: none;
+  border-radius: 9px;
 
-  box-shadow: 4px 4px 0 #111;
+  background: #ff1022;
+  color: white;
 
+  font-size: 1rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
 
   cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.primary-button:hover {
+  background: #e90015;
+  transform: translateY(-1px);
+}
+
+.play-icon {
+  margin-right: 9px;
 }
 
 .start-area small {
   display: block;
-  margin-top: 10px;
-  color: #666;
+
+  margin-top: 8px;
+
+  color: #333 !important;
+  font-size: 0.69rem;
 }
 
 .waiting-host {
   padding: 14px;
 
-  border: 2px dashed #aaa;
-  border-radius: 13px;
+  border: 1px dashed #aaa;
+  border-radius: 8px;
 
-  color: #666;
-  font-weight: 800;
+  color: #666 !important;
 }
 
-/* Side */
 
-.side-section {
-  padding: 22px;
-}
+/* =========================================
+   RIGHT PANEL
+========================================= */
 
-.side-section + .side-section {
-  border-top: 3px solid #111;
-}
-
-.side-section h2 {
-  margin: 0 0 15px;
-  color: #111;
-  font-size: 1rem;
-}
-
-.side-section p {
-  color: #555;
-  line-height: 1.6;
-}
-
-.setting-row {
-  padding: 15px 0;
+.tabs {
+  height: 70px;
 
   display: flex;
-  justify-content: space-between;
 
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #cfcfcf;
+}
 
+.tab {
+  position: relative;
+
+  flex: 1;
+
+  border: none;
+
+  background: transparent;
+  color: #555;
+
+  font-size: 0.88rem;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.tab.active {
   color: #111;
 }
 
-.setting-row:last-child {
-  border-bottom: 0;
+.tab.active::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: -1px;
+
+  height: 5px;
+
+  background: #ff1022;
 }
 
-.room-code-box {
-  margin-top: 18px;
-  padding: 16px;
+.side-section {
+  flex: 1;
+  min-height: 0;
 
-  border: 2px dashed #ef1823;
-  border-radius: 14px;
+  padding: 30px 30px;
 
-  color: #ef1823;
+  overflow-y: auto;
+}
 
-  text-align: center;
-  font-size: 1.6rem;
+.section-description {
+  margin: 0 0 27px;
+
+  color: #222 !important;
+
+  font-size: 0.85rem;
+}
+
+
+/* =========================================
+   ABOUT
+========================================= */
+
+.about-mode {
+  margin-top: 28px;
+  padding: 23px 8px 0;
+
+  border-top: 1px solid #d8d8d8;
+}
+
+.about-mode h4 {
+  margin: 0 0 13px;
+
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  font-size: 0.8rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
 }
 
-/* Error */
+.about-mode p {
+  margin: 0;
+
+  color: #222 !important;
+
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.info-icon {
+  width: 20px;
+  height: 20px;
+
+  display: inline-grid;
+  place-items: center;
+
+  border: 2px solid #111;
+  border-radius: 50%;
+
+  font-family: serif;
+  font-weight: 900;
+}
+
+
+/* =========================================
+   ERROR
+========================================= */
 
 .alert {
-  margin: 0 22px 14px;
-  padding: 11px;
+  margin: 0 20px 8px;
+  padding: 10px;
+
+  border: 1px solid #ff1022;
+  border-radius: 8px;
 
   background: #fff4f4;
-  color: #b70f18;
+  color: #b80a17 !important;
 
-  border: 2px solid #ef1823;
-  border-radius: 12px;
+  font-size: 0.75rem;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1000px) {
+  .waiting-layout {
+    padding: 12px 18px 24px;
+  }
 }
 
 @media (max-width: 850px) {
   .waiting-layout {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  .room-topbar {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px;
+    overflow-y: auto;
   }
 
-  .text-button,
-  .outline-button {
-    justify-self: center;
+  .lobby-card,
+  .side-card {
+    min-height: 600px;
   }
 }
 </style>

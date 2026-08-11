@@ -1,10 +1,24 @@
 <template>
   <section class="settings-panel">
-    <h3>{{ mode?.name }} Settings</h3>
-    <div v-if="mode" class="setting-list">
-      <div v-for="schema in mode.settings" :key="schema.key" class="setting-row">
-        <label>{{ schema.label }}</label>
-        <div>
+    <div class="settings-heading">
+      <h3>{{ mode?.name }} Settings</h3>
+      <p>Customize the room before starting the game.</p>
+    </div>
+
+    <div
+      v-if="mode"
+      class="setting-list"
+    >
+      <div
+        v-for="schema in mode.settings"
+        :key="schema.key"
+        class="setting-row"
+      >
+        <div class="setting-name">
+          <label>{{ schema.label }}</label>
+        </div>
+
+        <div class="setting-control">
           <input
             v-if="schema.type === 'number'"
             type="number"
@@ -19,7 +33,13 @@
             :value="getValue(schema.key, schema.default)"
             @change="onSelectChange(schema.key, $event)"
           >
-            <option v-for="opt in schema.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+            <option
+              v-for="opt in schema.options"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </option>
           </select>
 
           <input
@@ -72,9 +92,73 @@ function onTextChange(key: string, event: Event) {
 </script>
 
 <style scoped>
-.settings-panel { padding: 12px }
-.setting-list { display:flex; flex-direction:column; gap:10px }
-.setting-row { display:flex; justify-content:space-between; align-items:center }
-.setting-row label { font-weight:700 }
-.setting-row input, .setting-row select { min-width:120px; padding:6px }
+.settings-panel {
+  width: 100%;
+}
+
+.settings-heading {
+  margin-bottom: 24px;
+}
+
+.settings-heading h3 {
+  margin: 0;
+
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.settings-heading p {
+  margin: 6px 0 0;
+
+  color: #666 !important;
+  font-size: 0.78rem;
+}
+
+.setting-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-row {
+  min-height: 65px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  border-bottom: 1px solid #ddd;
+}
+
+.setting-row:last-child {
+  border-bottom: none;
+}
+
+.setting-name label {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.setting-control input,
+.setting-control select {
+  width: 135px;
+
+  padding: 9px 11px;
+
+  box-sizing: border-box;
+
+  border: 1.5px solid #aaa;
+  border-radius: 8px;
+
+  background: #fff;
+  color: #111;
+
+  font-size: 0.8rem;
+
+  outline: none;
+}
+
+.setting-control input:focus,
+.setting-control select:focus {
+  border-color: #ff1022;
+}
 </style>

@@ -3,6 +3,7 @@
 
     <LobbyHeader
       :connection-status="connectionStatus"
+      @leave="leaveRoom"
     />
 
     <WaitingLobby
@@ -24,12 +25,8 @@
       v-else-if="gameStore.roomStatus === 'reveal'"
     />
 
-    <DiscussionPhase
-      v-else-if="gameStore.roomStatus === 'discussion'"
-    />
-
-    <VotingPhase
-      v-else-if="gameStore.roomStatus === 'voting'"
+    <DiscussVotePhase
+      v-else-if="gameStore.roomStatus === 'discussion' || gameStore.roomStatus === 'voting'"
     />
     <ResultsPhase
       v-else-if="gameStore.roomStatus === 'results'"
@@ -39,14 +36,13 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useGameStore } from '../stores/game';
 import LobbyHeader from '../components/lobby/LobbyHeader.vue'
 import WaitingLobby from '../components/lobby/WaitingLobby.vue'
 import AnswerPhase from '../components/phases/AnswerPhase.vue'
 import RevealPhase from '../components/phases/RevealPhase.vue'
-import DiscussionPhase from '../components/phases/DiscussionPhase.vue'
-import VotingPhase from '../components/phases/VotingPhase.vue'
+import DiscussVotePhase from '../components/phases/DiscussVotePhase.vue'
 import ResultsPhase from '../components/phases/ResultsPhase.vue'
 
 
@@ -65,7 +61,12 @@ watch(() => [gameStore.roomStatus, gameStore.phaseCountdown], ([status, countdow
   }
 });
 
+const router = useRouter()
 
+function leaveRoom() {
+  gameStore.leaveRoom()
+  router.push('/')
+}
 
 function updateRoomSetting(setting: string, value: number) {
   // widen param type for compatibility with component event signature,
@@ -82,6 +83,13 @@ function updateRoomSetting(setting: string, value: number) {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+:global(html),
+:global(body),
+:global(#app) {
+  height: 100%;
+  overflow: hidden;
+}
+
 :global(button),
 :global(input),
 :global(textarea) {
@@ -89,7 +97,13 @@ function updateRoomSetting(setting: string, value: number) {
 }
 
 .lobby-page {
+  height: 100vh;
+  max-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   color: #111;
+  overflow: hidden;
 }
 
 .lobby-page h1,
@@ -115,35 +129,5 @@ function updateRoomSetting(setting: string, value: number) {
 .lobby-page .setting-row strong,
 .lobby-page .info-message {
   color: #111 !important;
-}
-
-
-.lobby-shell {
-  max-width: 1160px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(310px, 0.88fr);
-  gap: 18px;
-  align-items: stretch;
-}
-
-.lobby-card,
-.side-card,
-.game-card {
-  background: #fff;
-  border: 3px solid #111;
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 6px 6px 0 rgba(17, 17, 17, 0.08);
-}
-
-.room-topbar {
-  min-height: 82px;
-  border-bottom: 3px solid #111;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 16px;
-  padding: 0 22px;
 }
 </style>
