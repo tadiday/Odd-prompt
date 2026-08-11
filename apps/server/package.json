@@ -1,0 +1,20 @@
+{
+  "name": "@odd-prompt/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@odd-prompt/shared": "workspace:packages/shared",
+    "uuid": "^10.0.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.1",
+    "typescript": "^5.7.3"
+  }
+}
