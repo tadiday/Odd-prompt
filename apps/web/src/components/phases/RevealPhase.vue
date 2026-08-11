@@ -55,19 +55,21 @@ function getPlayerName(playerId: string) {
 <style scoped>
 .reveal-phase {
   width: 100%;
-  max-width: 900px;
+  max-width: 1600px;
+  flex: 1;
+  min-height: 0;
   margin: 0 auto;
   padding: 28px;
 
   box-sizing: border-box;
 
-  background: #fff;
+  background: transparent;
   color: #111;
 
-  border: 3px solid #111;
-  border-radius: 22px;
+  border: 0;
+  border-radius: 0;
 
-  box-shadow: 6px 6px 0 #111;
+  box-shadow: none;
 }
 
 .phase-header {

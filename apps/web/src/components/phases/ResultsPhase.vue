@@ -1,379 +1,161 @@
 <template>
-  <section class="results-phase">
-    <div class="phase-header">
-      <div>
-        <span class="eyebrow">ROUND COMPLETE</span>
-        <h1>RESULTS</h1>
-      </div>
-    </div>
+  <section class="phase-shell">
+    <header>
+      <span>✦</span>
+      <h1>RESULTS</h1>
+      <span>✦</span>
+    </header>
 
-    <div
-      v-if="!results"
-      class="waiting"
-    >
-      Waiting for results...
+    <div class="next-round-action">
+      <button v-if="gameStore.isHost" @click="gameStore.playAgain">
+        ↻ PLAY AGAIN
+      </button>
+      <p v-else>Waiting for the host to start another round…</p>
     </div>
-
+    <div v-if="!results" class="waiting">Waiting for results…</div>
     <template v-else>
-      <!-- Winning Team -->
-      <div class="winner-banner">
-        <span>WINNING TEAM</span>
-
-        <strong>
-          {{ results.winningTeam || 'civilian' }}
-        </strong>
+      <div class="summary-grid">
+        <article>
+          <span class="medal">★</span>
+          <small>ACTUAL PROMPT</small>
+          <strong>{{ actualPrompt }}</strong>
+        </article>
+        <article class="odd">
+          <small>ODD PROMPT</small>
+          <strong>{{ oddPrompt }}</strong>
+        </article>
       </div>
-
-      <!-- Most Voted -->
-      <div class="summary-card">
-        <template v-if="results.winnerId">
-          <span class="label">MOST VOTES</span>
-
-          <strong>
-            {{ getPlayerName(results.winnerId) }}
-          </strong>
-        </template>
-
-        <template v-else-if="results.tiedPlayerIds?.length">
-          <span class="label">TIE</span>
-
-          <strong>
-            {{
-              results.tiedPlayerIds
-                .map(getPlayerName)
-                .join(', ')
-            }}
-          </strong>
-        </template>
-
-        <template v-else>
-          <span class="label">VOTES</span>
-          <strong>No one received votes.</strong>
-        </template>
-      </div>
-
-      <!-- Vote Count -->
-      <div class="section">
-        <h2>VOTE COUNT</h2>
-
-        <div class="vote-results">
-          <div
-            v-for="entry in results.tally"
-            :key="entry.playerId"
-            class="vote-row"
-          >
-            <div class="player-info">
-              <div class="avatar">
-                {{ getInitial(entry.playerId) }}
-              </div>
-
-              <strong>
-                {{ getPlayerName(entry.playerId) }}
-              </strong>
-            </div>
-
-            <span class="vote-count">
-              {{ entry.count }}
-              vote{{ entry.count === 1 ? '' : 's' }}
-            </span>
+      <div class="results-layout">
+        <section class="table-wrap">
+          <div class="table-head">
+            <span>PLAYER</span>
+            <span>ROLE</span>
+            <span>ANSWER</span>
+            <span>VOTES RECEIVED</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Role Reveal -->
-      <div
-        v-if="results.revealedRoles?.length"
-        class="section"
-      >
-        <h2>ROLES REVEALED</h2>
-
-        <div class="role-grid">
           <article
-            v-for="entry in results.revealedRoles"
-            :key="entry.playerId"
-            class="role-card"
-            :class="{ imposter: entry.role === 'imposter' }"
+            v-for="player in resultPlayers"
+            :key="player.id"
+            :class="{ imposter: player.role === 'imposter' }"
           >
-            <div class="avatar">
-              {{ getInitial(entry.playerId) }}
+            <div class="player">
+              <i>{{ player.username.charAt(0).toUpperCase() }}</i>
+              <strong>{{ player.username }}</strong>
             </div>
-
-            <strong>
-              {{ getPlayerName(entry.playerId) }}
-            </strong>
-
-            <span class="role">
-              {{ entry.role }}
-            </span>
+            <b>{{ player.role === 'imposter' ? '♜ IMPOSTER' : '♟ INNOCENT' }}</b>
+            <p>{{ player.answer }}</p>
+            <span class="votes">{{ player.votes }}</span>
           </article>
-        </div>
+        </section>
+        <aside
+          class="winner-card"
+          :class="{ 'imposter-win': results.winningTeam === 'imposter' }"
+        >
+          <small>WINNING TEAM</small>
+          <strong>{{ winnerLabel }}<br />WIN!</strong>
+          <div>🏆</div>
+        </aside>
       </div>
     </template>
+    <ProgressiveFooter active-phase="result" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGameStore } from '../../stores/game'
-
+import ProgressiveFooter from './ProgressiveFooter.vue'
 const gameStore = useGameStore()
-
-const results = computed(() =>
-  gameStore.votingResults ?? null
+const results = computed(() => gameStore.votingResults ?? null)
+const actualPrompt = computed(
+  () => gameStore.revealedPrompts?.actualPrompt ?? 'Not revealed'
 )
 
-function getPlayerName(playerId: string) {
-  return (
-    gameStore.roomPlayers.find(
-      player => player.id === playerId
-    )?.username ?? playerId
-  )
-}
+const oddPrompt = computed(
+  () => gameStore.revealedPrompts?.oddPrompt ?? 'Not revealed'
+)
 
-function getInitial(playerId: string) {
-  return getPlayerName(playerId)
-    .charAt(0)
-    .toUpperCase()
+const winnerLabel = computed(() =>
+  results.value?.winningTeam === 'imposter' ? 'IMPOSTERS' : 'INNOCENTS'
+)
+
+const resultPlayers = computed(() =>
+  gameStore.roomPlayers.map((player) => ({
+    ...player,
+    role:
+      results.value?.revealedRoles?.find(
+        (entry) => entry.playerId === player.id
+      )?.role ?? (player.isImposter ? 'imposter' : 'civilian'),
+    answer:
+      gameStore.revealAnswers?.find((answer) => answer.playerId === player.id)
+        ?.content || '—',
+    votes:
+      results.value?.tally.find((entry) => entry.playerId === player.id)
+        ?.count ?? 0
+  }))
+)
+
+function getPlayerName(id: string) {
+  return gameStore.roomPlayers.find((player) => player.id === id)?.username ?? id
 }
 </script>
 
 <style scoped>
-.results-phase {
+.phase-shell {
+  --red: #f02632;
+  position: relative;
   width: 100%;
-  max-width: 900px;
-
+  max-width: 1600px;
+  flex: 1;
+  min-height: 0;
   margin: 0 auto;
-  padding: 28px;
-
+  padding: 28px 46px 105px;
   box-sizing: border-box;
-
-  background: #fff;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: #111;
-
-  border: 3px solid #111;
-  border-radius: 22px;
-
-  box-shadow: 6px 6px 0 #111;
+  box-shadow: none;
 }
 
-.phase-header {
-  padding-bottom: 20px;
-  margin-bottom: 24px;
-
-  border-bottom: 3px solid #111;
-}
-
-.phase-header h1 {
-  margin: 4px 0 0;
-
-  color: #111;
-
-  font-size: 2.5rem;
-  font-weight: 900;
-}
-
-.eyebrow {
-  color: #ef1823;
-
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-/* Winner */
-
-.winner-banner {
-  padding: 24px;
-  margin-bottom: 18px;
-
-  background: #ef1823;
-  color: #fff;
-
-  border: 3px solid #111;
-  border-radius: 16px;
-
-  text-align: center;
-
-  box-shadow: 4px 4px 0 #111;
-}
-
-.winner-banner span {
-  display: block;
-
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-.winner-banner strong {
-  display: block;
-
-  margin-top: 6px;
-
-  font-size: 2rem;
-  text-transform: uppercase;
-}
-
-/* Summary */
-
-.summary-card {
-  padding: 18px;
-  margin-bottom: 24px;
-
-  border: 3px solid #111;
-  border-radius: 14px;
-
-  text-align: center;
-}
-
-.summary-card .label {
-  display: block;
-
-  margin-bottom: 6px;
-
-  color: #ef1823;
-
-  font-size: 0.7rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-.summary-card strong {
-  color: #111;
-
-  font-size: 1.2rem;
-}
-
-/* Sections */
-
-.section {
-  margin-top: 24px;
-}
-
-.section h2 {
-  margin: 0 0 14px;
-
-  color: #111;
-
-  font-size: 1rem;
-  font-weight: 900;
-}
-
-/* Votes */
-
-.vote-results {
-  display: grid;
-  gap: 10px;
-}
-
-.vote-row {
-  min-height: 52px;
-
-  padding: 0 14px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  border: 2px solid #111;
-  border-radius: 12px;
-
-  color: #111;
-}
-
-.player-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-
-  display: grid;
-  place-items: center;
-
-  background: #ef1823;
-  color: #fff;
-
-  border: 2px solid #111;
-  border-radius: 50%;
-
-  font-weight: 900;
-}
-
-.vote-count {
-  font-weight: 900;
-}
-
-/* Roles */
-
-.role-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.role-card {
-  padding: 18px;
-
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  border: 3px solid #111;
-  border-radius: 14px;
-
-  background: #fff;
-  color: #111;
-}
-
-.role-card .role {
-  margin-left: auto;
-
-  color: #111;
-
-  font-size: 0.75rem;
-  font-weight: 900;
-
-  text-transform: uppercase;
-}
-
-.role-card.imposter {
-  border-color: #ef1823;
-}
-
-.role-card.imposter .role {
-  color: #ef1823;
-}
-
-/* Waiting */
-
-.waiting {
-  padding: 40px;
-
-  color: #777;
-
-  text-align: center;
-  font-weight: 700;
-}
-
-@media (max-width: 650px) {
-  .results-phase {
-    padding: 18px;
-  }
-
-  .role-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .phase-header h1 {
-    font-size: 2rem;
-  }
-
-  .winner-banner strong {
-    font-size: 1.5rem;
-  }
+header { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; color: var(--red); }
+header h1 { margin: 0; color: var(--red) !important; font-size: 2.2rem; }
+header span { font-size: 1.7rem; }
+.next-round-action { position: absolute; top: 26px; right: 46px; }
+.next-round-action button { padding: 11px 17px; border: 2px solid #111; border-radius: 9px; background: #fff; color: #111; box-shadow: 2px 2px 0 #111; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
+.next-round-action button:hover { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
+.next-round-action p { margin: 0; color: #666; font-size: 0.75rem; font-weight: 700; }
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 820px; margin: 0 auto 24px; }
+.summary-grid article { position: relative; display: grid; min-height: 110px; place-content: center; padding: 14px; border: 2px solid #111; border-radius: 12px; text-align: center; }
+.summary-grid article.odd { border-color: var(--red); background: #fff7f7; }
+.summary-grid small, .winner-card small { font-size: 0.75rem; font-weight: 900; }
+.summary-grid strong { margin-top: 5px; font-size: 1.1rem; }
+.summary-grid .medal { position: absolute; top: -17px; left: 17px; display: grid; width: 36px; height: 36px; place-items: center; border: 2px solid #111; border-radius: 50%; background: #ffc928; color: #ef1823 !important; }
+.results-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 22px; }
+.table-wrap { overflow: hidden; border: 1px solid #ddd; border-radius: 10px; }
+.table-head, .table-wrap article { display: grid; grid-template-columns: 1.25fr 0.9fr 1.5fr 0.65fr; align-items: center; }
+.table-head { padding: 10px 15px; background: #fafafa; font-size: 0.68rem; font-weight: 900; }
+.table-wrap article { min-height: 60px; padding: 8px 15px; border-top: 1px solid #ddd; font-size: 0.92rem; }
+.player { display: flex; align-items: center; gap: 10px; }
+.player i { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid #111; border-radius: 50%; font-style: normal; font-weight: 900; }
+.table-wrap article > b { color: #1ca54c; font-size: 0.75rem; }
+.table-wrap article.imposter > b { color: var(--red); }
+.table-wrap article p { margin: 0; }
+.votes { font-size: 1rem; font-weight: 900; text-align: center; }
+.winner-card { display: grid; min-height: 210px; place-content: center; padding: 18px; border: 2px solid #111; border-radius: 12px; text-align: center; }
+.winner-card strong { margin: 12px 0; color: #10a240 !important; font-size: 1.5rem; }
+.winner-card div { font-size: 3.5rem; }
+.winner-card.imposter-win { border-color: var(--red); background: #fff7f7; }
+.winner-card.imposter-win strong { color: var(--red) !important; }
+.waiting { padding: 130px; text-align: center; color: #777; font-size: 1rem; }
+
+@media (max-width: 760px) {
+  .phase-shell { width: 100%; padding: 24px 14px 22px; overflow: auto; }
+  .results-layout { grid-template-columns: 1fr; }
+  .winner-card { min-height: 150px; }
+  .table-head { display: none; }
+  .table-wrap article { grid-template-columns: 1.2fr 1fr 0.8fr 0.3fr; }
+  .summary-grid { grid-template-columns: 1fr; }
+  .next-round-action { position: static; margin: -8px 0 20px; text-align: center; }
 }
 </style>

@@ -7,6 +7,7 @@ export interface GameMode {
   id: string;
   name: string;
   description?: string;
+  disabled?: boolean;
   settings: SettingSchema[];
 }
 
@@ -27,6 +28,7 @@ export const GAME_MODES: Record<string, GameMode> = {
     id: 'coop',
     name: 'Co-op',
     description: 'Cooperative mode with shared prompts',
+    disabled: true,
     settings: [
       { key: 'maxPlayers', label: 'Max Players', type: 'number', min: 2, max: 8, default: 4 },
       { key: 'answerTimerSeconds', label: 'Drawing Time (sec)', type: 'number', min: 10, max: 300, default: 60 },

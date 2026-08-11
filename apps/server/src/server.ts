@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { WS_EVENT, Room, Player, PromptAssignment, Answer, Vote, RoomOptions } from '@odd-prompt/shared';
+import { WS_EVENT, Room, Player, PromptAssignment, Answer, Vote, RoomOptions, RoundPrompts } from '@odd-prompt/shared';
 
 const preferredPort = Number(process.env.PORT ?? 3001);
 
@@ -21,6 +21,7 @@ const rooms = new Map<string, Room>();
 const answersByRoom = new Map<string, Answer[]>();
 const votesByRoom = new Map<string, Vote[]>();
 const roomAssignments = new Map<string, Map<string, 'civilian' | 'imposter'>>();
+const roundPromptsByRoom = new Map<string, RoundPrompts>();
 
 startServer(preferredPort);
 
@@ -225,6 +226,13 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       const assignments = assignPromptsToRoom(room);
       const assignmentMap = new Map<string, 'civilian' | 'imposter'>();
 
+      roundPromptsByRoom.set(room.code, {
+        actualPrompt:
+          assignments.find((entry) => entry.role === 'civilian')?.prompt ?? '',
+        oddPrompt:
+          assignments.find((entry) => entry.role === 'imposter')?.prompt ?? ''
+      });
+
       room.players = room.players.map((player) => {
         const assignment = assignments.find((entry) => entry.playerId === player.id);
         const role = assignment?.role ?? 'civilian';
@@ -362,17 +370,9 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
         return;
       }
 
-      const voterRole = roomAssignments.get(room.code)?.get(session.id) ?? (session.isImposter ? 'imposter' : 'civilian');
       const targetPlayer = room.players.find((player) => player.id === targetPlayerId);
       if (!targetPlayer) {
         socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidVoteTarget', message: 'Target player was not found.' } }));
-        return;
-      }
-
-      const targetIsImposter = targetPlayer.isImposter;
-      const isTargetAllowed = voterRole === 'imposter' ? !targetIsImposter : targetIsImposter;
-      if (!isTargetAllowed) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidVoteTarget', message: voterRole === 'imposter' ? 'The imposter must vote for civilians.' : 'Civilians must vote for the imposter.' } }));
         return;
       }
 
@@ -400,6 +400,47 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       storeVote(room, session.id, 'skip');
       break;
     }
+    case WS_EVENT.readyForNextRound: {
+      const room = rooms.get(message.payload?.roomCode);
+      const session = sessions.get(socket);
+
+      if (!room || !session || session.roomCode !== room.code) {
+        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidSession', message: 'Room or player session not found.' } }));
+        return;
+      }
+
+      if (room.hostId !== session.id) {
+        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'notHost', message: 'Only the host can start another round.' } }));
+        return;
+      }
+
+      if (room.status !== 'results') {
+        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidStateTransition', message: 'The current round has not finished.' } }));
+        return;
+      }
+
+      room.status = 'waiting';
+      room.currentRoundId = undefined;
+      room.phaseEndsAt = undefined;
+      room.players = room.players.map((player) => ({
+        ...player,
+        isImposter: false
+      }));
+
+      answersByRoom.delete(room.code);
+      votesByRoom.delete(room.code);
+      roomAssignments.delete(room.code);
+      roundPromptsByRoom.delete(room.code);
+
+      for (const playerSession of sessions.values()) {
+        if (playerSession.roomCode === room.code) {
+          playerSession.isImposter = false;
+        }
+      }
+
+      broadcastToRoom(room.code, WS_EVENT.roomUpdated, { room });
+      break;
+    }
     default:
       console.warn('unsupported ws message type received:', message.type, message.payload);
       socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'unsupportedMessage', message: 'This message type is not supported yet.' } }));
@@ -425,7 +466,10 @@ function finalizeAnswerPhase(room: Room) {
   room.status = 'discussion';
   room.phaseEndsAt = Date.now() + (Number(room.options.discussionTimerSeconds ?? 60) * 1000);
 
-  broadcastToRoom(room.code, WS_EVENT.roundReveal, { answers: allAnswers });
+  broadcastToRoom(room.code, WS_EVENT.roundReveal, {
+    answers: allAnswers,
+    prompts: roundPromptsByRoom.get(room.code)
+  });
   broadcastToRoom(room.code, WS_EVENT.discussionStarted, {
     room,
     endsAt: room.phaseEndsAt,
@@ -515,11 +559,11 @@ function finalizeVoting(room: Room) {
 
   const winningTeam = (() => {
     if (leaderIds.length !== 1) {
-      return 'civilian';
+      return 'imposter';
     }
 
     const winnerRole = roomAssignments.get(room.code)?.get(leaderIds[0]) ?? 'civilian';
-    return winnerRole === 'imposter' ? 'imposter' : 'civilian';
+    return winnerRole === 'imposter' ? 'civilian' : 'imposter';
   })();
 
   const payload = {
@@ -530,7 +574,8 @@ function finalizeVoting(room: Room) {
     totalVotes: votes.length,
     skipVotes: votes.filter((vote) => vote.targetPlayerId === 'skip').length,
     winningTeam,
-    revealedRoles
+    revealedRoles,
+    prompts: roundPromptsByRoom.get(room.code)
   };
 
   room.status = 'results';
@@ -560,10 +605,14 @@ function assignPromptsToRoom(room: Room): PromptAssignment[] {
   const shuffledIds = [...playerIds].sort(() => Math.random() - 0.5);
   const imposterIds = new Set(shuffledIds.slice(0, imposterCount));
 
-  return room.players.map((player, index) => ({
+  const promptStartIndex = Math.floor(Math.random() * prompts.length);
+  const actualPrompt = prompts[promptStartIndex];
+  const oddPrompt = prompts[(promptStartIndex + 1) % prompts.length];
+
+  return room.players.map((player) => ({
     playerId: player.id,
     role: imposterIds.has(player.id) ? 'imposter' : 'civilian',
-    prompt: prompts[index % prompts.length]
+    prompt: imposterIds.has(player.id) ? oddPrompt : actualPrompt
   }));
 }
 

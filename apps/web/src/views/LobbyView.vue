@@ -1,10 +1,13 @@
 <template>
   <main class="lobby-page">
+    <section class="game-shell">
 
     <LobbyHeader
       :connection-status="connectionStatus"
       @leave="leaveRoom"
     />
+
+    <div class="header-divider" aria-hidden="true"></div>
 
     <WaitingLobby
       v-if="gameStore.roomStatus === 'waiting'"
@@ -31,6 +34,7 @@
     <ResultsPhase
       v-else-if="gameStore.roomStatus === 'results'"
     />
+    </section>
   </main>
 </template>
 
@@ -98,36 +102,52 @@ function updateRoomSetting(setting: string, value: number) {
 
 .lobby-page {
   height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
   width: 100%;
   display: flex;
-  flex-direction: column;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #f3f3f3;
   color: #111;
-  overflow: hidden;
+  overflow: auto;
 }
 
-.lobby-page h1,
-.lobby-page h2,
-.lobby-page h3,
-.lobby-page h4,
-.lobby-page p,
-.lobby-page span,
-.lobby-page strong,
-.lobby-page small,
-.lobby-page label,
-.lobby-page .brand-title,
-.lobby-page .brand-subtitle,
-.lobby-page .connection-text,
-.lobby-page .room-code-block span,
-.lobby-page .waiting-banner h2,
-.lobby-page .waiting-banner p,
-.lobby-page .players-header h3,
-.lobby-page .player-name,
-.lobby-page .side-section h2,
-.lobby-page .setting-row,
-.lobby-page .setting-row span,
-.lobby-page .setting-row strong,
-.lobby-page .info-message {
-  color: #111 !important;
+.game-shell {
+  display: flex;
+  width: 100%;
+  max-width: 1600px;
+  min-height: calc(100vh - 48px);
+  flex-direction: column;
+  margin: 0 auto;
+  padding: 0 24px 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 2px solid #111;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 14px #00000014;
 }
+
+.header-divider {
+  width: calc(100% - 32px);
+  height: 2px;
+  flex: 0 0 auto;
+  margin: 0 auto 18px;
+  border-radius: 999px;
+  background: #d8d8d8;
+}
+
+@media (max-width: 700px) {
+  .lobby-page {
+    padding: 10px;
+  }
+
+  .game-shell {
+    min-height: calc(100vh - 20px);
+    padding: 0 10px 10px;
+    overflow: visible;
+    border-radius: 14px;
+  }
+}
+
 </style>

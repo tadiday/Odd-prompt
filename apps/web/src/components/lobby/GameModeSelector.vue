@@ -4,9 +4,20 @@
       <button
         v-for="(mode, key) in modes"
         :key="key"
-        :class="['mode-tile', { active: selectedMode === key }]"
+        :class="[
+          'mode-tile',
+          {
+            active: selectedMode === key,
+            unavailable: mode.disabled
+          }
+        ]"
+        :disabled="mode.disabled"
         @click="$emit('select', key)"
       >
+        <span v-if="mode.disabled" class="coming-soon">
+          COMING SOON
+        </span>
+
         <span
           v-if="selectedMode === key"
           class="selected-check"
@@ -57,7 +68,7 @@ const selectedMode = computed(() => props.selected ?? '')
 .mode-tile {
   position: relative;
 
-  min-height: 260px;
+  min-height: 225px;
 
   padding: 28px 20px;
 
@@ -66,10 +77,10 @@ const selectedMode = computed(() => props.selected ?? '')
   align-items: center;
   justify-content: center;
 
-  border: 1.5px solid #cfcfcf;
+  border: 1.5px solid #d8d8d8;
   border-radius: 13px;
 
-  background: #fff;
+  background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%);
   color: #111;
 
   text-align: center;
@@ -84,11 +95,24 @@ const selectedMode = computed(() => props.selected ?? '')
 
 .mode-tile:hover {
   transform: translateY(-2px);
-  border-color: #999;
+  border-color: #111;
+  box-shadow: 0 8px 18px #0000000f;
 }
 
 .mode-tile.active {
   border: 2px solid #ff1022;
+  background: #fffafa;
+  box-shadow: 0 8px 18px #ff102212;
+}
+
+.mode-tile.unavailable {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.mode-tile.unavailable:hover {
+  transform: none;
+  border-color: #d8d8d8;
   box-shadow: none;
 }
 
@@ -134,6 +158,20 @@ const selectedMode = computed(() => props.selected ?? '')
 
   font-size: 0.8rem;
   font-weight: 900;
+}
+
+.coming-soon {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  color: #555;
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
 }
 
 @media (max-width: 600px) {

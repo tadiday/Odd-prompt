@@ -1,140 +1,70 @@
 <template>
-  <section class="answer-phase">
-    <!-- Phase label -->
-    <div class="phase-label">
-      2&nbsp;&nbsp; ANSWER PHASE
+  <section class="phase-shell">
+    <div class="phase-intro">
+      <span class="private-badge">⌁ PRIVATE PROMPT</span>
+      <h1>♙ THIS IS YOUR PROMPT</h1>
+      <p>Only you can see this. Don’t tell anyone!</p>
     </div>
 
-    <!-- Private prompt -->
-    <div class="private-badge">
-      ◉ PRIVATE PROMPT
-    </div>
-
-    <div class="prompt-heading">
-      <h2>🔒 THIS IS YOUR PROMPT</h2>
-      <p>Only you can see this. Don't tell anyone!</p>
-    </div>
-
-    <!-- Timer -->
     <div class="timer-card">
-      <span>TIME LEFT</span>
-
-      <strong>
-        ◷ {{ formattedCountdown }}
-      </strong>
+      <small>TIME LEFT</small>
+      <strong>◷ {{ formattedCountdown }}</strong>
     </div>
 
-    <!-- Prompt + Answer -->
-    <div
-      v-if="gameStore.currentPlayerPrompt"
-      class="answer-card"
-    >
-      <div class="prompt-box">
-        {{ gameStore.currentPlayerPrompt.prompt }}
-      </div>
-
+    <div v-if="gameStore.currentPlayerPrompt" class="answer-card">
+      <h2>{{ gameStore.currentPlayerPrompt.prompt }}</h2>
       <div class="textarea-wrap">
         <textarea
           v-model="draftAnswer"
           placeholder="Write your answer here..."
           maxlength="100"
           :disabled="!!gameStore.submittedAnswer"
-        ></textarea>
-
-        <span class="character-count">
-          {{ draftAnswer.length }} / 100
-        </span>
+        />
+        <span>{{ draftAnswer.length }} / 100</span>
       </div>
     </div>
+    <div v-else class="waiting">Waiting for your prompt…</div>
 
-    <div v-else class="waiting">
-      Waiting for your prompt...
-    </div>
-
-    <!-- Auto submit note -->
     <p class="auto-submit">
       Your answer will be submitted automatically when time is up!
     </p>
-
-    <!-- Submit button -->
     <button
       v-if="gameStore.currentPlayerPrompt"
-      class="submit-button"
+      class="primary-button"
       :disabled="!!gameStore.submittedAnswer"
       @click="submitAnswer"
     >
-      {{
-        gameStore.submittedAnswer
-          ? 'ANSWER SUBMITTED ✓'
-          : 'SUBMIT ANSWER'
-      }}
+      {{ gameStore.submittedAnswer ? 'ANSWER SUBMITTED ✓' : 'SUBMIT ANSWER' }}
     </button>
 
-    <!-- Progress -->
-    <div class="progress">
-      <div class="progress-item complete">
-        <div class="dot">✓</div>
-        <span>START</span>
-      </div>
-
-      <div class="progress-line active"></div>
-
-      <div class="progress-item active">
-        <div class="dot">✓</div>
-        <span>ANSWER</span>
-      </div>
-
-      <div class="progress-line"></div>
-
-      <div class="progress-item">
-        <div class="dot"></div>
-        <span>DISCUSS & VOTE</span>
-      </div>
-
-      <div class="progress-line"></div>
-
-      <div class="progress-item">
-        <div class="dot"></div>
-        <span>RESULT</span>
-      </div>
-    </div>
+    <ProgressiveFooter active-phase="answer" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useGameStore } from '../../stores/game'
-
+import ProgressiveFooter from './ProgressiveFooter.vue'
 const gameStore = useGameStore()
-
 const draftAnswer = ref('')
-
 const formattedCountdown = computed(() => {
   const seconds = gameStore.phaseCountdown ?? 0
+  const minutes = String(Math.floor(seconds / 60)).padStart(2, '0')
+  const remainingSeconds = String(seconds % 60).padStart(2, '0')
 
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-
-  return `${String(minutes).padStart(2, '0')}:${String(
-    remainingSeconds
-  ).padStart(2, '0')}`
+  return `${minutes}:${remainingSeconds}`
 })
 
 function submitAnswer() {
-  if (gameStore.submittedAnswer) {
-    return
+  if (!gameStore.submittedAnswer) {
+    gameStore.submitAnswer(draftAnswer.value)
   }
-
-  gameStore.submitAnswer(draftAnswer.value)
 }
 
 watch(
   () => gameStore.phaseCountdown,
   (countdown) => {
-    if (
-      countdown === 0 &&
-      !gameStore.submittedAnswer
-    ) {
+    if (countdown === 0 && !gameStore.submittedAnswer) {
       gameStore.submitAnswer(draftAnswer.value)
     }
   }
@@ -142,344 +72,118 @@ watch(
 </script>
 
 <style scoped>
-.answer-phase {
+.phase-shell {
+  --red: #f02632;
   position: relative;
-
   width: 100%;
-  max-width: 1000px;
-
+  max-width: 1600px;
+  flex: 1;
+  min-height: 0;
   margin: 0 auto;
-  padding: 56px 64px 36px;
-
+  padding: 34px 72px 105px;
   box-sizing: border-box;
-
-  background: #fff;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: #111;
-
-  border: 3px solid #111;
-  border-radius: 22px;
+  box-shadow: none;
 }
 
-/* Phase label */
-
-.phase-label {
-  position: absolute;
-  top: -3px;
-  left: -3px;
-
-  padding: 12px 24px;
-
-  background: #111;
-  color: #fff;
-
-  border-radius: 18px 0 14px 0;
-
-  font-size: 0.9rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-}
-
-/* Private badge */
+.phase-intro { text-align: center; }
 
 .private-badge {
-  width: fit-content;
-
-  margin: 0 auto 16px;
-  padding: 7px 14px;
-
-  background: #ffe0e3;
-  color: #ef1823;
-
-  border-radius: 10px;
-
-  font-size: 0.75rem;
-  font-weight: 900;
-}
-
-/* Prompt heading */
-
-.prompt-heading {
-  text-align: center;
-}
-
-.prompt-heading h2 {
-  margin: 0;
-
-  color: #111;
-
-  font-size: 1.1rem;
-  font-weight: 900;
-}
-
-.prompt-heading p {
-  margin: 5px 0 22px;
-
-  color: #555;
-
+  display: inline-block;
+  padding: 8px 17px;
+  border-radius: 999px;
+  background: #ffe7e9;
+  color: var(--red) !important;
   font-size: 0.85rem;
+  font-weight: 900;
 }
 
-/* Timer */
+.phase-intro h1 { margin: 18px 0 5px; font-size: 1.2rem; }
+.phase-intro p { margin: 0 0 24px; font-size: 0.95rem; }
 
 .timer-card {
   position: absolute;
   top: 92px;
-  right: 64px;
-
-  padding: 10px 18px;
-
-  border: 2px solid #ef1823;
+  right: 72px;
+  min-width: 150px;
+  padding: 12px 18px;
+  border: 2px solid var(--red);
   border-radius: 12px;
-
-  background: #fff;
-
   text-align: center;
 }
 
-.timer-card span {
-  display: block;
-
-  color: #111;
-
-  font-size: 0.62rem;
-  font-weight: 900;
-}
-
-.timer-card strong {
-  display: block;
-
-  margin-top: 3px;
-
-  color: #111;
-
-  font-size: 1.3rem;
-}
-
-/* Answer card */
+.timer-card small { display: block; font-size: 0.72rem; font-weight: 900; }
+.timer-card strong { font-size: 1.4rem; }
 
 .answer-card {
-  max-width: 620px;
-
-  margin: 0 auto;
+  max-width: 820px;
+  margin: auto;
   overflow: hidden;
-
   border: 2px solid #111;
-  border-radius: 16px;
-
-  background: #fff;
+  border-radius: 14px;
 }
 
-.prompt-box {
-  padding: 18px 20px;
-
+.answer-card h2 {
+  margin: 0;
+  padding: 19px 24px;
   border-bottom: 1px solid #ddd;
-
-  color: #ef1823;
-
+  color: var(--red) !important;
   text-align: center;
-
-  font-size: 1.25rem;
-  font-weight: 900;
+  font-size: 1.35rem;
 }
 
-/* Textarea */
+.textarea-wrap { position: relative; }
 
-.textarea-wrap {
-  position: relative;
-}
-
-textarea {
+.textarea-wrap textarea {
+  display: block;
   width: 100%;
-  min-height: 170px;
-
-  box-sizing: border-box;
-
-  padding: 20px 22px 38px;
-
+  height: 190px;
+  padding: 21px 24px 38px;
   border: 0;
   outline: 0;
-
   resize: none;
-
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent 38px,
-      #eee 39px
-    );
-
-  color: #111;
-
-  font-size: 1rem;
-  line-height: 39px;
+  background: repeating-linear-gradient(#fff 0 43px, #ececec 44px);
+  font-size: 1.05rem;
+  line-height: 44px;
 }
 
-textarea::placeholder {
-  color: #777;
-}
-
-.character-count {
+.textarea-wrap span {
   position: absolute;
-  right: 16px;
+  right: 18px;
   bottom: 12px;
-
-  color: #777;
-
-  font-size: 0.75rem;
+  color: #777 !important;
+  font-size: 0.82rem;
 }
 
-/* Note */
+.auto-submit { margin: 20px 0 14px; text-align: center; font-size: 0.85rem; font-weight: 700; }
 
-.auto-submit {
-  margin: 26px 0 16px;
-
-  color: #111;
-
-  text-align: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-/* Submit */
-
-.submit-button {
+.primary-button {
   display: block;
-
-  width: 100%;
-  max-width: 620px;
-
-  margin: 0 auto 34px;
-  padding: 14px;
-
-  background: #ef1823;
-  color: #fff;
-
+  min-width: 260px;
+  margin: 0 auto 32px;
+  padding: 14px 24px;
   border: 2px solid #111;
-  border-radius: 12px;
-
-  font-weight: 900;
-
-  cursor: pointer;
-
-  box-shadow: 3px 3px 0 #111;
-}
-
-.submit-button:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-/* Progress bar */
-
-.progress {
-  display: flex;
-  align-items: flex-start;
-
-  max-width: 850px;
-
-  margin: 0 auto;
-}
-
-.progress-item {
-  width: 110px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  gap: 7px;
-}
-
-.progress-item span {
-  color: #555;
-
-  font-size: 0.68rem;
-  font-weight: 800;
-
-  text-align: center;
-}
-
-.dot {
-  width: 16px;
-  height: 16px;
-
-  box-sizing: border-box;
-
-  border: 2px solid #bbb;
-  border-radius: 50%;
-
-  background: #fff;
-
-  display: grid;
-  place-items: center;
-
+  border-radius: 10px;
+  background: var(--red);
   color: #fff;
-
-  font-size: 0.55rem;
+  font-size: 0.95rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 3px 3px #111;
 }
 
-.progress-item.complete .dot {
-  border-color: #111;
-  background: #111;
-}
+.primary-button:disabled { opacity: 0.55; }
+.waiting { padding: 95px; text-align: center; color: #777; font-size: 1rem; }
 
-.progress-item.active .dot {
-  border-color: #ef1823;
-  background: #ef1823;
-}
-
-.progress-item.active span {
-  color: #ef1823;
-}
-
-.progress-line {
-  flex: 1;
-
-  height: 2px;
-
-  margin-top: 7px;
-
-  background: #ccc;
-}
-
-.progress-line.active {
-  background: linear-gradient(
-    to right,
-    #111 0 50%,
-    #ef1823 50% 100%
-  );
-}
-
-.waiting {
-  padding: 50px;
-
-  color: #777;
-
-  text-align: center;
-}
-
-/* Mobile */
 
 @media (max-width: 700px) {
-  .answer-phase {
-    padding: 70px 20px 26px;
-  }
-
-  .timer-card {
-    position: static;
-
-    width: fit-content;
-
-    margin: 0 auto 18px;
-  }
-
-  .progress-item {
-    width: 75px;
-  }
-
-  .progress-item span {
-    font-size: 0.58rem;
-  }
+  .phase-shell { width: 100%; padding: 28px 16px 22px; overflow: auto; }
+  .timer-card { position: static; width: max-content; margin: 0 auto 18px; }
+  .phase-intro p { margin-bottom: 14px; }
+  .answer-card h2 { font-size: 1rem; }
+  .textarea-wrap textarea { height: 150px; font-size: 0.9rem; }
 }
 </style>

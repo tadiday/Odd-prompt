@@ -48,6 +48,11 @@ export interface PromptAssignment {
   prompt: string;
 }
 
+export interface RoundPrompts {
+  actualPrompt: string;
+  oddPrompt: string;
+}
+
 export interface Answer {
   playerId: string;
   content: string;

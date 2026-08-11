@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { WS_EVENT, Room, Player, ErrorPayload, RoomOptions, PromptAssignment, Answer } from '@odd-prompt/shared';
+import { WS_EVENT, Room, Player, ErrorPayload, RoomOptions, PromptAssignment, Answer, RoundPrompts } from '@odd-prompt/shared';
 import { socketService } from '../services/socket';
 
 export const useGameStore = defineStore('game', () => {
@@ -50,6 +50,10 @@ export const useGameStore = defineStore('game', () => {
   socketService.on(WS_EVENT.roomUpdated, (payload: { room: Room }) => {
     currentRoom.value = payload.room;
     phaseEndsAt.value = payload.room.phaseEndsAt ?? null;
+
+    if (payload.room.status === 'waiting') {
+      resetRoundState();
+    }
   });
 
   socketService.on(WS_EVENT.promptAssigned, (payload: PromptAssignment) => {
@@ -62,8 +66,9 @@ export const useGameStore = defineStore('game', () => {
     }
   });
 
-  socketService.on(WS_EVENT.roundReveal, (payload: { answers: Answer[] }) => {
+  socketService.on(WS_EVENT.roundReveal, (payload: { answers: Answer[]; prompts?: RoundPrompts }) => {
     revealAnswers.value = payload.answers;
+    revealedPrompts.value = payload.prompts ?? null;
   });
 
   socketService.on(WS_EVENT.discussionStarted, (payload: { room: Room; endsAt?: number; remainingSeconds?: number }) => {
@@ -86,8 +91,10 @@ export const useGameStore = defineStore('game', () => {
     skipVotes: number;
     winningTeam?: 'imposter' | 'civilian';
     revealedRoles?: Array<{ playerId: string; role: 'imposter' | 'civilian' }>;
+    prompts?: RoundPrompts;
   }) => {
     votingResults.value = payload;
+    revealedPrompts.value = payload.prompts ?? revealedPrompts.value;
     if (currentRoom.value) {
       currentRoom.value = {
         ...currentRoom.value,
@@ -128,6 +135,7 @@ export const useGameStore = defineStore('game', () => {
   const currentPlayerPrompt = ref<PromptAssignment | null>(null);
   const submittedAnswer = ref<Answer | null>(null);
   const revealAnswers = ref<Answer[] | null>(null);
+  const revealedPrompts = ref<RoundPrompts | null>(null);
   const votingResults = ref<{
     roomCode: string;
     tally: Array<{ playerId: string; count: number }>;
@@ -137,6 +145,7 @@ export const useGameStore = defineStore('game', () => {
     skipVotes: number;
     winningTeam?: 'imposter' | 'civilian';
     revealedRoles?: Array<{ playerId: string; role: 'imposter' | 'civilian' }>;
+    prompts?: RoundPrompts;
   } | null>(null);
 
 
@@ -145,6 +154,7 @@ export const useGameStore = defineStore('game', () => {
     currentPlayerPrompt.value = null;
     submittedAnswer.value = null;
     revealAnswers.value = null;
+    revealedPrompts.value = null;
     votingResults.value = null;
     phaseEndsAt.value = null;
   }
@@ -287,12 +297,24 @@ export const useGameStore = defineStore('game', () => {
     socketService.send(WS_EVENT.skipVote, { roomCode: currentRoom.value.code, targetPlayerId: 'skip' });
   }
 
+  function playAgain() {
+    if (!currentRoom.value || !isHost.value || roomStatus.value !== 'results') {
+      return;
+    }
+
+    errorMessage.value = null;
+    socketService.send(WS_EVENT.readyForNextRound, {
+      roomCode: currentRoom.value.code
+    });
+  }
+
   return {
     currentRoom,
     currentPlayer,
     currentPlayerPrompt,
     submittedAnswer,
     revealAnswers,
+    revealedPrompts,
     votingResults,
     roomCode,
     roomPlayers,
@@ -307,6 +329,7 @@ export const useGameStore = defineStore('game', () => {
     submitAnswer,
     submitVote,
     skipVote,
+    playAgain,
     getMyRole,
     leaveRoom,
     updateRoomSetting,

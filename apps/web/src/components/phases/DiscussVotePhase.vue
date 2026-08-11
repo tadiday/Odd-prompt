@@ -1,403 +1,181 @@
 <template>
-  <section class="discuss-vote-phase">
-    <div class="phase-header">
-      <div>
-        <span class="eyebrow">TAKE A LOOK</span>
-        <h1>DISCUSS &amp; VOTE</h1>
-      </div>
-
-      <div class="timer-box">
-        <span>TIME LEFT</span>
-        <strong>◷ {{ formattedCountdown }}</strong>
+  <section class="phase-shell">
+    <div class="top-row">
+      <p>DISCUSS with your friends and then vote for the imposter!</p>
+      <div class="timers">
+        <div :class="{ muted: canVote }">
+          <small>DISCUSSION<br />TIME LEFT</small>
+          <strong>◷ {{ canVote ? '00:00' : formattedCountdown }}</strong>
+        </div>
+        <div class="red">
+          <small>VOTING<br />TIME LEFT</small>
+          <strong>◷ {{ canVote ? formattedCountdown : '--:--' }}</strong>
+        </div>
       </div>
     </div>
-
-    <p class="instructions">
-      Discuss the answers and vote for who you think is the imposter.
-    </p>
+    <h1>{{ actualPrompt }}</h1>
+    <p class="prompt-kind">(Actual Prompt)</p>
 
     <div class="phase-layout">
       <section class="answers-panel">
-        <div class="panel-title">
-          ANSWERS
+        <h2>ANSWERS</h2>
+        <div v-if="!revealAnswers.length" class="empty-state">
+          Waiting for answers…
         </div>
-
-        <div v-if="revealAnswers.length === 0" class="empty-state">
-          Waiting for answers...
-        </div>
-
         <div v-else class="answer-list">
-          <article
-            v-for="answer in revealAnswers"
-            :key="answer.playerId"
-            class="answer-row"
-          >
-            <div class="player-pill">
-              <div class="avatar">
-                {{ getInitial(answer.playerId) }}
-              </div>
-              <strong>{{ getPlayerName(answer.playerId) }}</strong>
-            </div>
-
+          <article v-for="answer in revealAnswers" :key="answer.playerId">
+            <div class="avatar">{{ getInitial(answer.playerId) }}</div>
+            <strong>
+              {{ getPlayerName(answer.playerId) }}
+              <em v-if="answer.playerId === gameStore.currentPlayer?.id">(You)</em>
+            </strong>
             <p>{{ answer.content || 'No answer.' }}</p>
           </article>
         </div>
       </section>
 
       <aside class="vote-panel">
-        <div class="panel-title panel-title-right">
-          WHO IS THE IMPOSTER?
-        </div>
-
-        <p class="vote-helper">
-          Vote for the player you think has a different prompt.
-        </p>
-
-        <div class="vote-list">
-          <button
-            v-for="player in eligiblePlayers"
-            :key="player.id"
-            class="vote-row"
-            :class="{ selected: selectedVote === player.id }"
-            :disabled="!canVote"
-            @click="selectPlayer(player.id)"
-          >
-            <div class="player-pill">
-              <div class="avatar">{{ getInitial(player.username) }}</div>
-              <strong>{{ player.username }}</strong>
-            </div>
-
-            <span v-if="selectedVote === player.id" class="selected-mark">✓</span>
-          </button>
-        </div>
-
-        <div class="actions">
-          <button
-            class="submit-button"
-            :disabled="!canVote || !selectedVote"
-            @click="submitVote"
-          >
-            SUBMIT VOTE
-          </button>
-
-          <button
-            class="skip-button"
-            :disabled="!canVote"
-            @click="skipVote"
-          >
-            SKIP VOTE
-          </button>
-        </div>
-
-        <p v-if="!canVote" class="vote-note">
-          Voting opens when the discussion timer ends.
-        </p>
+        <h2>WHO IS THE IMPOSTER?</h2>
+        <p>Vote for the player you think had a different prompt!</p>
+        <button
+          v-for="player in eligiblePlayers"
+          :key="player.id"
+          :class="{ selected: selectedVote === player.id }"
+          :disabled="!canVote"
+          @click="selectedVote = player.id"
+        >
+          <span class="avatar">{{ getInitial(player.id) }}</span>
+          <strong>{{ player.username }}</strong>
+          <i></i>
+        </button>
+        <button
+          class="submit"
+          :disabled="!canVote || !selectedVote"
+          @click="submitVote"
+        >
+          SUBMIT VOTE
+        </button>
+        <button class="skip" :disabled="!canVote" @click="skipVote">
+          SKIP VOTE
+        </button>
       </aside>
     </div>
+
+    <ProgressiveFooter active-phase="discuss" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useGameStore } from '../../stores/game'
-
+import ProgressiveFooter from './ProgressiveFooter.vue'
 const gameStore = useGameStore()
 const selectedVote = ref<string | null>(null)
-
 const revealAnswers = computed(() => gameStore.revealAnswers ?? [])
-const myRole = computed(() => gameStore.getMyRole())
 const canVote = computed(() => gameStore.roomStatus === 'voting')
-
+const actualPrompt = computed(
+  () =>
+    gameStore.revealedPrompts?.actualPrompt ??
+    gameStore.currentPlayerPrompt?.prompt ??
+    'Waiting for the actual prompt…'
+)
 const formattedCountdown = computed(() => {
   const seconds = gameStore.phaseCountdown ?? 0
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
+  const minutes = String(Math.floor(seconds / 60)).padStart(2, '0')
+  const remainingSeconds = String(seconds % 60).padStart(2, '0')
 
-  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+  return `${minutes}:${remainingSeconds}`
 })
+const eligiblePlayers = computed(() =>
+  gameStore.roomPlayers.filter(
+    (player) => player.id !== gameStore.currentPlayer?.id
+  )
+)
 
-const eligiblePlayers = computed(() => {
-  const currentPlayerId = gameStore.currentPlayer?.id
-  const isImposter = myRole.value === 'imposter'
-
-  return gameStore.roomPlayers.filter((player) => {
-    if (player.id === currentPlayerId) {
-      return false
-    }
-
-    return isImposter ? !player.isImposter : player.isImposter
-  })
-})
-
-function getPlayerName(playerId: string) {
-  return gameStore.roomPlayers.find((player) => player.id === playerId)?.username ?? playerId
+function getPlayerName(id: string) {
+  return gameStore.roomPlayers.find((player) => player.id === id)?.username ?? id
 }
 
-function getInitial(playerIdOrName: string) {
-  return getPlayerName(playerIdOrName).charAt(0).toUpperCase()
-}
-
-function selectPlayer(playerId: string) {
-  if (!canVote.value) return
-  selectedVote.value = playerId
+function getInitial(id: string) {
+  return getPlayerName(id).charAt(0).toUpperCase()
 }
 
 function submitVote() {
-  if (!canVote.value || !selectedVote.value) {
-    return
+  if (canVote.value && selectedVote.value) {
+    gameStore.submitVote(selectedVote.value)
   }
-
-  gameStore.submitVote(selectedVote.value)
 }
 
 function skipVote() {
-  if (!canVote.value) return
-  selectedVote.value = null
-  gameStore.skipVote()
+  if (canVote.value) {
+    selectedVote.value = null
+    gameStore.skipVote()
+  }
 }
 
-watch(() => gameStore.roomStatus, (status) => {
-  if (status === 'discussion') {
-    selectedVote.value = null
+watch(
+  () => gameStore.roomStatus,
+  (status) => {
+    if (status === 'discussion') {
+      selectedVote.value = null
+    }
   }
-})
+)
 </script>
 
 <style scoped>
-.discuss-vote-phase {
+.phase-shell {
+  --red: #f02632;
   position: relative;
   width: 100%;
-  max-width: 1180px;
+  max-width: 1600px;
+  flex: 1;
+  min-height: 0;
   margin: 0 auto;
-  padding: 22px;
+  padding: 30px 48px 105px;
   box-sizing: border-box;
-  background: #fff;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: #111;
-  border: 3px solid #111;
-  border-radius: 22px;
-  box-shadow: 6px 6px 0 #111;
+  box-shadow: none;
 }
 
-.phase-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding-bottom: 18px;
-  margin-bottom: 18px;
-  border-bottom: 3px solid #111;
-}
+.top-row { display: flex; align-items: center; justify-content: space-between; }
+.top-row > p { font-size: 0.95rem; font-weight: 800; }
+.timers { display: flex; gap: 14px; }
+.timers > div { min-width: 128px; padding: 11px 14px; border: 2px solid #111; border-radius: 11px; text-align: center; }
+.timers .red { border-color: var(--red); }
+.timers .muted { opacity: 0.5; }
+.timers small { display: block; font-size: 0.65rem; font-weight: 900; line-height: 1.1; }
+.timers strong { display: block; margin-top: 5px; font-size: 1.2rem; }
+.phase-shell > h1 { margin: 12px 0 0; text-align: center; font-size: 1.65rem; }
+.prompt-kind { margin: 4px 0 18px; text-align: center; font-size: 0.82rem; font-weight: 700; }
+.phase-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(330px, 0.75fr); gap: 26px; }
+.answers-panel > h2, .vote-panel > h2 { margin: 0 0 12px; font-size: 0.88rem; }
+.answer-list { display: grid; gap: 10px; }
+.answer-list article { display: grid; grid-template-columns: 44px 190px 1fr; align-items: center; min-height: 58px; padding: 8px 13px; border: 1px solid #ddd; border-radius: 9px; }
+.avatar { display: grid; width: 36px; height: 36px; place-items: center; border: 2px solid #111; border-radius: 50%; background: #f5f5f5; font-size: 0.88rem; font-weight: 900; }
+.answer-list strong { font-size: 0.95rem; }
+.answer-list em { color: var(--red); font-size: 0.78rem; font-style: normal; }
+.answer-list p { margin: 0; font-size: 1rem; }
+.vote-panel { padding: 19px; border: 2px solid #111; border-radius: 12px; }
+.vote-panel > h2 { text-align: center; font-size: 0.95rem; }
+.vote-panel > p { margin: 0 0 13px; text-align: center; font-size: 0.78rem; }
+.vote-panel > button:not(.submit):not(.skip) { display: flex; width: 100%; align-items: center; gap: 11px; padding: 8px; border: 0; background: #fff; cursor: pointer; }
+.vote-panel button strong { font-size: 0.92rem; }
+.vote-panel button i { width: 18px; height: 18px; margin-left: auto; border: 2px solid #111; border-radius: 50%; }
+.vote-panel button.selected i { border: 5px solid var(--red); }
+.submit, .skip { width: 100%; margin-top: 11px; padding: 13px; border: 1px solid #111; border-radius: 8px; font-size: 0.82rem; font-weight: 900; }
+.submit { background: var(--red); color: #fff; }
+.skip { background: #fff; }
+.submit:disabled, .skip:disabled { opacity: 0.45; }
+.empty-state { padding: 70px; text-align: center; color: #777; font-size: 1rem; }
 
-.phase-header h1 {
-  margin: 4px 0 0;
-  color: #111;
-  font-size: 2.35rem;
-  font-weight: 900;
-}
-
-.eyebrow {
-  color: #ef1823;
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-.timer-box {
-  padding: 10px 14px;
-  min-width: 120px;
-  text-align: center;
-  border: 2px solid #ef1823;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.timer-box span {
-  display: block;
-  font-size: 0.62rem;
-  font-weight: 900;
-}
-
-.timer-box strong {
-  display: block;
-  margin-top: 3px;
-  font-size: 1.35rem;
-}
-
-.instructions {
-  margin: 0 0 18px;
-  color: #555;
-  text-align: center;
-  font-weight: 700;
-}
-
-.phase-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.answers-panel,
-.vote-panel {
-  border: 2px solid #111;
-  border-radius: 16px;
-  background: #fff;
-}
-
-.panel-title {
-  padding: 12px 16px;
-  border-bottom: 1px solid #ddd;
-  font-size: 0.82rem;
-  font-weight: 900;
-}
-
-.panel-title-right {
-  text-align: center;
-}
-
-.answer-list,
-.vote-list {
-  padding: 14px;
-  display: grid;
-  gap: 10px;
-}
-
-.answer-row,
-.vote-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 14px;
-  box-sizing: border-box;
-  border: 2px solid #ddd;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.answer-row p {
-  margin: 0;
-  color: #111;
-  font-size: 0.98rem;
-  line-height: 1.45;
-  white-space: pre-wrap;
-}
-
-.player-pill {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-}
-
-.avatar {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border: 2px solid #111;
-  border-radius: 50%;
-  background: #ef1823;
-  color: #fff;
-  font-weight: 900;
-}
-
-.vote-row {
-  cursor: pointer;
-}
-
-.vote-row:hover:not(:disabled) {
-  border-color: #ef1823;
-}
-
-.vote-row.selected {
-  border-color: #ef1823;
-}
-
-.vote-row:disabled {
-  cursor: default;
-  opacity: 0.9;
-}
-
-.selected-mark {
-  margin-left: auto;
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border: 2px solid #111;
-  border-radius: 50%;
-  background: #ef1823;
-  color: #fff;
-  font-weight: 900;
-}
-
-.vote-helper,
-.vote-note {
-  margin: 0;
-  padding: 0 16px 12px;
-  color: #555;
-  font-size: 0.84rem;
-  text-align: center;
-}
-
-.actions {
-  display: grid;
-  gap: 10px;
-  padding: 0 14px 14px;
-}
-
-.submit-button,
-.skip-button {
-  width: 100%;
-  padding: 14px;
-  border: 3px solid #111;
-  border-radius: 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.submit-button {
-  background: #ef1823;
-  color: #fff;
-  box-shadow: 4px 4px 0 #111;
-}
-
-.submit-button:disabled,
-.skip-button:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.skip-button {
-  background: #fff;
-  color: #111;
-}
-
-.empty-state {
-  padding: 32px 16px;
-  color: #777;
-  text-align: center;
-}
-
-@media (max-width: 860px) {
-  .phase-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 650px) {
-  .discuss-vote-phase {
-    padding: 16px;
-  }
-
-  .phase-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .phase-header h1 {
-    font-size: 1.9rem;
-  }
+@media (max-width: 760px) {
+  .phase-shell { width: 100%; padding: 26px 15px 22px; overflow: auto; }
+  .top-row { align-items: flex-start; gap: 10px; }
+  .phase-layout { grid-template-columns: 1fr; }
+  .answer-list article { grid-template-columns: 40px 115px 1fr; }
 }
 </style>

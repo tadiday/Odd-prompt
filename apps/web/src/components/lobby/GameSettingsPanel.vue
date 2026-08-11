@@ -126,7 +126,7 @@ function onTextChange(key: string, event: Event) {
   justify-content: space-between;
   align-items: center;
 
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .setting-row:last-child {
@@ -155,10 +155,20 @@ function onTextChange(key: string, event: Event) {
   font-size: 0.8rem;
 
   outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.setting-control input:hover,
+.setting-control select:hover {
+  border-color: #777;
 }
 
 .setting-control input:focus,
 .setting-control select:focus {
   border-color: #ff1022;
+  box-shadow: 0 0 0 3px #ff102218;
 }
 </style>
