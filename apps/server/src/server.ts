@@ -389,7 +389,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
         return;
       }
 
-      storeVote(room, session.id, targetPlayerId);
+      storeVote(room, session.id, targetPlayerId, socket);
       break;
     }
     case WS_EVENT.skipVote: {
@@ -410,7 +410,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
         return;
       }
 
-      storeVote(room, session.id, 'skip');
+      storeVote(room, session.id, 'skip', socket);
       break;
     }
     case WS_EVENT.readyForNextRound: {
@@ -524,7 +524,7 @@ function beginVotingPhase(room: Room) {
   }, votingDurationMs);
 }
 
-function storeVote(room: Room, voterId: string, targetPlayerId: string) {
+function storeVote(room: Room, voterId: string, targetPlayerId: string, socket: WebSocket) {
   const votes = votesByRoom.get(room.code) ?? [];
   const existingVoteIndex = votes.findIndex((vote) => vote.voterId === voterId);
   const nextVote: Vote = {
@@ -540,6 +540,10 @@ function storeVote(room: Room, voterId: string, targetPlayerId: string) {
   }
 
   votesByRoom.set(room.code, votes);
+  socket.send(JSON.stringify({
+    type: WS_EVENT.voteSubmitted,
+    payload: { targetPlayerId }
+  }));
 
   const everyoneVoted = room.players.every((player) => votes.some((vote) => vote.voterId === player.id));
   if (everyoneVoted) {

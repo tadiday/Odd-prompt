@@ -80,6 +80,11 @@ export const useGameStore = defineStore('game', () => {
     currentRoom.value = payload.room;
     phaseEndsAt.value = payload.endsAt ?? null;
     votingResults.value = null;
+    submittedVote.value = null;
+  });
+
+  socketService.on(WS_EVENT.voteSubmitted, (payload: { targetPlayerId: string }) => {
+    submittedVote.value = payload.targetPlayerId;
   });
 
   socketService.on(WS_EVENT.votingResults, (payload: {
@@ -147,6 +152,7 @@ export const useGameStore = defineStore('game', () => {
     revealedRoles?: Array<{ playerId: string; role: 'imposter' | 'civilian' }>;
     prompts?: RoundPrompts;
   } | null>(null);
+  const submittedVote = ref<string | null>(null);
 
 
 
@@ -156,6 +162,7 @@ export const useGameStore = defineStore('game', () => {
     revealAnswers.value = null;
     revealedPrompts.value = null;
     votingResults.value = null;
+    submittedVote.value = null;
     phaseEndsAt.value = null;
   }
 
@@ -320,6 +327,7 @@ export const useGameStore = defineStore('game', () => {
     revealAnswers,
     revealedPrompts,
     votingResults,
+    submittedVote,
     roomCode,
     roomPlayers,
     roomStatus,

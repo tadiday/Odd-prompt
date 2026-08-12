@@ -120,6 +120,7 @@ export const WS_EVENT = {
   roundReveal: 'roundReveal',
   discussionStarted: 'discussionStarted',
   votingStarted: 'votingStarted',
+  voteSubmitted: 'voteSubmitted',
   votingResults: 'votingResults',
   roundEnded: 'roundEnded',
   roomClosed: 'roomClosed',
@@ -152,6 +153,7 @@ export type ServerMessage =
   | BaseMessage<any, typeof WS_EVENT.roundReveal>
   | BaseMessage<any, typeof WS_EVENT.discussionStarted>
   | BaseMessage<any, typeof WS_EVENT.votingStarted>
+  | BaseMessage<any, typeof WS_EVENT.voteSubmitted>
   | BaseMessage<any, typeof WS_EVENT.votingResults>
   | BaseMessage<any, typeof WS_EVENT.roundEnded>
   | BaseMessage<ErrorPayload, typeof WS_EVENT.error>;

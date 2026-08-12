@@ -43,7 +43,10 @@
         <button
           v-for="player in eligiblePlayers"
           :key="player.id"
-          :class="{ selected: selectedVote === player.id }"
+          :class="{
+            selected: selectedVote === player.id,
+            submitted: gameStore.submittedVote === player.id
+          }"
           :disabled="!canVote"
           @click="selectedVote = player.id"
         >
@@ -52,17 +55,27 @@
             :player-name="player.username"
           />
           <strong>{{ player.username }}</strong>
+          <span v-if="gameStore.submittedVote === player.id">Current vote</span>
           <i></i>
         </button>
         <button
           class="submit"
-          :disabled="!canVote || !selectedVote"
+          :disabled="
+            !canVote ||
+            !selectedVote ||
+            isSubmitting ||
+            selectedVote === gameStore.submittedVote
+          "
           @click="submitVote"
         >
-          SUBMIT VOTE
+          {{ submitButtonLabel }}
         </button>
-        <button class="skip" :disabled="!canVote" @click="skipVote">
-          SKIP VOTE
+        <button
+          class="skip"
+          :disabled="!canVote || isSubmitting || gameStore.submittedVote === 'skip'"
+          @click="skipVote"
+        >
+          {{ gameStore.submittedVote === 'skip' ? 'SKIP SUBMITTED ✓' : 'SKIP VOTE' }}
         </button>
       </aside>
     </div>
@@ -78,6 +91,7 @@ import ProgressiveFooter from './ProgressiveFooter.vue'
 import PlayerAvatar from '../PlayerAvatar.vue'
 const gameStore = useGameStore()
 const selectedVote = ref<string | null>(null)
+const isSubmitting = ref(false)
 const revealAnswers = computed(() => gameStore.revealAnswers ?? [])
 const canVote = computed(() => gameStore.roomStatus === 'voting')
 const actualPrompt = computed(
@@ -98,6 +112,17 @@ const eligiblePlayers = computed(() =>
     (player) => player.id !== gameStore.currentPlayer?.id
   )
 )
+const submitButtonLabel = computed(() => {
+  if (isSubmitting.value) {
+    return 'SUBMITTING…'
+  }
+
+  if (selectedVote.value && selectedVote.value === gameStore.submittedVote) {
+    return 'VOTE SUBMITTED ✓'
+  }
+
+  return gameStore.submittedVote ? 'UPDATE VOTE' : 'SUBMIT VOTE'
+})
 
 function getPlayerName(id: string) {
   return getPlayer(id)?.username ?? id
@@ -109,12 +134,14 @@ function getPlayer(id: string) {
 
 function submitVote() {
   if (canVote.value && selectedVote.value) {
+    isSubmitting.value = true
     gameStore.submitVote(selectedVote.value)
   }
 }
 
 function skipVote() {
   if (canVote.value) {
+    isSubmitting.value = true
     selectedVote.value = null
     gameStore.skipVote()
   }
@@ -126,6 +153,14 @@ watch(
     if (status === 'discussion') {
       selectedVote.value = null
     }
+  }
+)
+
+watch(
+  () => gameStore.submittedVote,
+  (submittedVote) => {
+    isSubmitting.value = false
+    selectedVote.value = submittedVote === 'skip' ? null : submittedVote
   }
 )
 </script>
@@ -171,8 +206,11 @@ watch(
 .vote-panel > p { margin: 0 0 13px; text-align: center; font-size: 0.78rem; }
 .vote-panel > button:not(.submit):not(.skip) { display: flex; width: 100%; align-items: center; gap: 11px; padding: 8px; border: 0; background: #fff; cursor: pointer; }
 .vote-panel button strong { font-size: 0.92rem; }
+.vote-panel button span { margin-left: auto; color: var(--red); font-size: 0.68rem; font-weight: 900; text-transform: uppercase; }
 .vote-panel button i { width: 18px; height: 18px; margin-left: auto; border: 2px solid #111; border-radius: 50%; }
+.vote-panel button span + i { margin-left: 0; }
 .vote-panel button.selected i { border: 5px solid var(--red); }
+.vote-panel button.submitted { background: #fff7f7 !important; }
 .submit, .skip { width: 100%; margin-top: 11px; padding: 13px; border: 1px solid #111; border-radius: 8px; font-size: 0.82rem; font-weight: 900; }
 .submit { background: var(--red); color: #fff; }
 .skip { background: #fff; }
