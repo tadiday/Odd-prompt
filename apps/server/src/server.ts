@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { WS_EVENT, Room, Player, PromptAssignment, Answer, Vote, RoomOptions, RoundPrompts } from '@odd-prompt/shared';
+import { getRandomPromptPair } from './prompts.js';
 
 const preferredPort = Number(process.env.PORT ?? 3001);
 
@@ -23,6 +24,8 @@ const answersByRoom = new Map<string, Answer[]>();
 const votesByRoom = new Map<string, Vote[]>();
 const roomAssignments = new Map<string, Map<string, 'civilian' | 'imposter'>>();
 const roundPromptsByRoom = new Map<string, RoundPrompts>();
+const recentPromptIdsByRoom = new Map<string, string[]>();
+const RECENT_PROMPT_LIMIT = 12;
 
 startServer(preferredPort);
 
@@ -55,6 +58,11 @@ function startServer(port: number) {
 
           if (room.players.length === 0) {
             rooms.delete(session.roomCode);
+            answersByRoom.delete(session.roomCode);
+            votesByRoom.delete(session.roomCode);
+            roomAssignments.delete(session.roomCode);
+            roundPromptsByRoom.delete(session.roomCode);
+            recentPromptIdsByRoom.delete(session.roomCode);
           } else {
             if (room.hostId === session.id) {
               room.hostId = room.players[0].id;
@@ -598,26 +606,22 @@ function broadcastToRoom(roomCode: string, event: string, payload: unknown, excl
 }
 
 function assignPromptsToRoom(room: Room): PromptAssignment[] {
-  const prompts = [
-    'What is the best age to date?',
-    'What is the worst thing about being a parent?',
-    'How many times you pooped a day?',
-    'How much time do you spend on hobbies each month?'
-  ];
-
   const playerIds = room.players.map((player) => player.id);
   const imposterCount = Math.min(room.options.imposterCount, playerIds.length - 1);
   const shuffledIds = [...playerIds].sort(() => Math.random() - 0.5);
   const imposterIds = new Set(shuffledIds.slice(0, imposterCount));
 
-  const promptStartIndex = Math.floor(Math.random() * prompts.length);
-  const actualPrompt = prompts[promptStartIndex];
-  const oddPrompt = prompts[(promptStartIndex + 1) % prompts.length];
+  const recentPromptIds = recentPromptIdsByRoom.get(room.code) ?? [];
+  const promptPair = getRandomPromptPair(new Set(recentPromptIds));
+  recentPromptIdsByRoom.set(
+    room.code,
+    [...recentPromptIds, promptPair.normalPromptId, promptPair.oddPromptId].slice(-RECENT_PROMPT_LIMIT)
+  );
 
   return room.players.map((player) => ({
     playerId: player.id,
     role: imposterIds.has(player.id) ? 'imposter' : 'civilian',
-    prompt: imposterIds.has(player.id) ? oddPrompt : actualPrompt
+    prompt: imposterIds.has(player.id) ? promptPair.oddPrompt : promptPair.normalPrompt
   }));
 }
 
