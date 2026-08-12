@@ -2,6 +2,10 @@
   "name": "odd-prompt",
   "private": true,
   "version": "0.1.0",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
