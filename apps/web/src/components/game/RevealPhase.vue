@@ -40,8 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import { useGameStore } from '../../stores/game'
-import PlayerAvatar from '../PlayerAvatar.vue'
+import { useGameStore } from '../../stores/gameStore'
+import PlayerAvatar from '../common/PlayerAvatar.vue'
 
 const gameStore = useGameStore()
 

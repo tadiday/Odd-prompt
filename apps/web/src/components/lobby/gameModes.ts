@@ -1,7 +1,9 @@
+import type { RoomSetting } from '@odd-prompt/shared'
+
 export type SettingSchema =
-  | { key: string; label: string; type: 'number'; min?: number; max?: number; default: number }
-  | { key: string; label: string; type: 'select'; options: Array<{ label: string; value: string | number }>; default: string | number }
-  | { key: string; label: string; type: 'text'; default: string }
+  | { key: RoomSetting; label: string; type: 'number'; min?: number; max?: number; default: number }
+  | { key: RoomSetting; label: string; type: 'select'; options: Array<{ label: string; value: string | number }>; default: string | number }
+  | { key: RoomSetting; label: string; type: 'text'; default: string }
 
 export interface GameMode {
   id: string;
@@ -32,7 +34,6 @@ export const GAME_MODES: Record<string, GameMode> = {
     settings: [
       { key: 'maxPlayers', label: 'Max Players', type: 'number', min: 2, max: 8, default: 4 },
       { key: 'answerTimerSeconds', label: 'Drawing Time (sec)', type: 'number', min: 10, max: 300, default: 60 },
-      { key: 'rounds', label: 'Rounds', type: 'number', min: 1, max: 10, default: 5 }
     ]
   }
 }

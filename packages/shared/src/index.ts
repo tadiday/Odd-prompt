@@ -9,6 +9,7 @@ export type GamePhase =
   | 'next-round';
 
 export interface RoomOptions {
+  gameMode?: string;
   imposterCount: number;
   answerTimerSeconds: number;
   discussionTimerSeconds: number;
@@ -48,6 +49,18 @@ export interface PromptAssignment {
   role: 'civilian' | 'imposter';
   prompt: string;
 }
+
+export type NumericRoomSetting =
+  | 'maxPlayers'
+  | 'answerTimerSeconds'
+  | 'discussionTimerSeconds'
+  | 'votingTimerSeconds'
+  | 'imposterCount';
+
+export type RoomSetting = NumericRoomSetting | 'gameMode';
+
+export type RoomSettingValue<Setting extends RoomSetting> =
+  Setting extends 'gameMode' ? string : number;
 
 export interface RoundPrompts {
   actualPrompt: string;
@@ -138,7 +151,19 @@ export type ClientMessage =
 export interface ErrorPayload {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
+}
+
+export interface VotingResults {
+  roomCode: string;
+  tally: Array<{ playerId: string; count: number }>;
+  winnerId: string | null;
+  tiedPlayerIds: string[];
+  totalVotes: number;
+  skipVotes: number;
+  winningTeam?: 'imposter' | 'civilian';
+  revealedRoles?: Array<{ playerId: string; role: 'imposter' | 'civilian' }>;
+  prompts?: RoundPrompts;
 }
 
 export type ServerMessage =
@@ -148,12 +173,12 @@ export type ServerMessage =
   | BaseMessage<{ player: Player }, typeof WS_EVENT.playerJoined>
   | BaseMessage<{ playerId: string; reason?: string }, typeof WS_EVENT.playerLeft>
   | BaseMessage<{ room: Room }, typeof WS_EVENT.gameStarted>
-  | BaseMessage<any, typeof WS_EVENT.promptAssigned>
-  | BaseMessage<any, typeof WS_EVENT.answerSubmitted>
-  | BaseMessage<any, typeof WS_EVENT.roundReveal>
-  | BaseMessage<any, typeof WS_EVENT.discussionStarted>
-  | BaseMessage<any, typeof WS_EVENT.votingStarted>
-  | BaseMessage<any, typeof WS_EVENT.voteSubmitted>
-  | BaseMessage<any, typeof WS_EVENT.votingResults>
-  | BaseMessage<any, typeof WS_EVENT.roundEnded>
+  | BaseMessage<PromptAssignment, typeof WS_EVENT.promptAssigned>
+  | BaseMessage<{ answer: Answer }, typeof WS_EVENT.answerSubmitted>
+  | BaseMessage<{ answers: Answer[]; prompts?: RoundPrompts }, typeof WS_EVENT.roundReveal>
+  | BaseMessage<{ room: Room; endsAt?: number; remainingSeconds?: number }, typeof WS_EVENT.discussionStarted>
+  | BaseMessage<{ room: Room; endsAt?: number; remainingSeconds?: number }, typeof WS_EVENT.votingStarted>
+  | BaseMessage<{ targetPlayerId: string }, typeof WS_EVENT.voteSubmitted>
+  | BaseMessage<VotingResults, typeof WS_EVENT.votingResults>
+  | BaseMessage<{ room: Room }, typeof WS_EVENT.roundEnded>
   | BaseMessage<ErrorPayload, typeof WS_EVENT.error>;

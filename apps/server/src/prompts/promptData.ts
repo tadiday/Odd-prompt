@@ -1,33 +1,4 @@
-export const promptCategories = [
-  'movies',
-  'food',
-  'drinks',
-  'games',
-  'music',
-  'animals',
-  'places',
-  'relationships',
-  'everyday_life',
-  'numbers'
-] as const;
-
-export type PromptCategory = (typeof promptCategories)[number];
-
-export interface GamePrompt {
-  id: string;
-  category: PromptCategory;
-  answerType: string;
-  prompt: string;
-}
-
-export interface PromptPair {
-  category: PromptCategory;
-  answerType: string;
-  normalPrompt: string;
-  oddPrompt: string;
-  normalPromptId: string;
-  oddPromptId: string;
-}
+import type { GamePrompt, PromptCategory } from './promptTypes.js';
 
 const group = (
   category: PromptCategory,
@@ -279,41 +250,3 @@ export const prompts: GamePrompt[] = [
     'What percent of a vacation should be spent relaxing?'
   ])
 ];
-
-export function getPromptsByCategory(category: PromptCategory): GamePrompt[] {
-  return prompts.filter((prompt) => prompt.category === category);
-}
-
-export function getPromptsByAnswerType(
-  answerType: string,
-  category?: PromptCategory
-): GamePrompt[] {
-  return prompts.filter((prompt) =>
-    prompt.answerType === answerType && (!category || prompt.category === category)
-  );
-}
-
-export function getRandomPromptPair(recentPromptIds: ReadonlySet<string> = new Set()): PromptPair {
-  const category = randomItem(promptCategories);
-  const categoryPrompts = getPromptsByCategory(category);
-  const answerTypes = [...new Set(categoryPrompts.map((prompt) => prompt.answerType))];
-  const answerType = randomItem(answerTypes);
-  const matchingPrompts = getPromptsByAnswerType(answerType, category);
-  const freshPrompts = matchingPrompts.filter((prompt) => !recentPromptIds.has(prompt.id));
-  const candidates = freshPrompts.length >= 2 ? freshPrompts : matchingPrompts;
-  const normalPrompt = randomItem(candidates);
-  const oddPrompt = randomItem(candidates.filter((prompt) => prompt.id !== normalPrompt.id));
-
-  return {
-    category,
-    answerType,
-    normalPrompt: normalPrompt.prompt,
-    oddPrompt: oddPrompt.prompt,
-    normalPromptId: normalPrompt.id,
-    oddPromptId: oddPrompt.id
-  };
-}
-
-function randomItem<T>(items: readonly T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
-}

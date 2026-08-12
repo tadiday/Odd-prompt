@@ -1,31 +1,10 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { WS_EVENT, Room, Player, PromptAssignment, Answer, Vote, RoomOptions, RoundPrompts } from '@odd-prompt/shared';
-import { getRandomPromptPair } from './prompts.js';
+import { WS_EVENT, type Room, type Player, type Answer, type RoomOptions } from '@odd-prompt/shared';
+import { assignPromptsToRoom, broadcastToRoom, finalizeAnswerPhase, storeVote } from '../game/gamePhases.js';
+import { answersByRoom, clearRoomState, recentPromptIdsByRoom, roomAssignments, rooms, roundPromptsByRoom, sessions, votesByRoom, type PlayerSession } from '../game/gameState.js';
 
 const preferredPort = Number(process.env.PORT ?? 3001);
-
-interface PlayerSession {
-  id: string;
-  username: string;
-  avatarId: string;
-  roomCode: string;
-  socket?: WebSocket;
-  isHost: boolean;
-  isImposter: boolean;
-  isConnected: boolean;
-  joinedAt: string;
-  score: number;
-}
-
-const sessions = new Map<WebSocket, PlayerSession>();
-const rooms = new Map<string, Room>();
-const answersByRoom = new Map<string, Answer[]>();
-const votesByRoom = new Map<string, Vote[]>();
-const roomAssignments = new Map<string, Map<string, 'civilian' | 'imposter'>>();
-const roundPromptsByRoom = new Map<string, RoundPrompts>();
-const recentPromptIdsByRoom = new Map<string, string[]>();
-const RECENT_PROMPT_LIMIT = 12;
 
 startServer(preferredPort);
 
@@ -58,10 +37,7 @@ function startServer(port: number) {
 
           if (room.players.length === 0) {
             rooms.delete(session.roomCode);
-            answersByRoom.delete(session.roomCode);
-            votesByRoom.delete(session.roomCode);
-            roomAssignments.delete(session.roomCode);
-            roundPromptsByRoom.delete(session.roomCode);
+            clearRoomState(session.roomCode);
             recentPromptIdsByRoom.delete(session.roomCode);
           } else {
             if (room.hostId === session.id) {
@@ -295,20 +271,26 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       }
 
       const setting = String(message.payload?.setting || '');
-      const value = Number(message.payload?.value);
+      const rawValue = message.payload?.value;
 
       switch (setting) {
+        case 'gameMode':
+          room.options.gameMode = String(rawValue || 'classic');
+          break;
         case 'maxPlayers':
-          room.options.maxPlayers = value;
+          room.options.maxPlayers = Number(rawValue);
           break;
         case 'answerTimerSeconds':
-          room.options.answerTimerSeconds = value;
+          room.options.answerTimerSeconds = Number(rawValue);
+          break;
+        case 'discussionTimerSeconds':
+          room.options.discussionTimerSeconds = Number(rawValue);
           break;
         case 'votingTimerSeconds':
-          room.options.votingTimerSeconds = value;
+          room.options.votingTimerSeconds = Number(rawValue);
           break;
         case 'imposterCount':
-          room.options.imposterCount = value;
+          room.options.imposterCount = Number(rawValue);
           break;
         default:
           socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidSetting', message: 'Unknown setting.' } }));
@@ -458,175 +440,6 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       console.warn('unsupported ws message type received:', message.type, message.payload);
       socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'unsupportedMessage', message: 'This message type is not supported yet.' } }));
   }
-}
-
-function finalizeAnswerPhase(room: Room) {
-  if (room.status !== 'answering') {
-    return;
-  }
-
-  const currentAnswers = answersByRoom.get(room.code) ?? [];
-  const allAnswers = room.players.map((player) => {
-    const existing = currentAnswers.find((answer) => answer.playerId === player.id);
-    return existing ?? {
-      playerId: player.id,
-      content: '',
-      submittedAt: new Date().toISOString()
-    };
-  });
-
-  answersByRoom.set(room.code, allAnswers);
-  room.status = 'discussion';
-  room.phaseEndsAt = Date.now() + (Number(room.options.discussionTimerSeconds ?? 60) * 1000);
-
-  broadcastToRoom(room.code, WS_EVENT.roundReveal, {
-    answers: allAnswers,
-    prompts: roundPromptsByRoom.get(room.code)
-  });
-  broadcastToRoom(room.code, WS_EVENT.discussionStarted, {
-    room,
-    endsAt: room.phaseEndsAt,
-    remainingSeconds: Number(room.options.discussionTimerSeconds ?? 60)
-  });
-  broadcastToRoom(room.code, WS_EVENT.roomUpdated, { room });
-
-  const discussionDurationMs = Math.max(1000, Number(room.options.discussionTimerSeconds ?? 60) * 1000);
-  setTimeout(() => {
-    const activeRoom = rooms.get(room.code);
-    if (!activeRoom || activeRoom.status !== 'discussion') {
-      return;
-    }
-
-    beginVotingPhase(activeRoom);
-  }, discussionDurationMs);
-}
-
-function beginVotingPhase(room: Room) {
-  room.status = 'voting';
-  room.phaseEndsAt = Date.now() + (Number(room.options.votingTimerSeconds ?? 30) * 1000);
-  votesByRoom.set(room.code, []);
-  broadcastToRoom(room.code, WS_EVENT.votingStarted, {
-    room,
-    votingTimerSeconds: room.options.votingTimerSeconds,
-    endsAt: room.phaseEndsAt,
-    remainingSeconds: Number(room.options.votingTimerSeconds ?? 30)
-  });
-  broadcastToRoom(room.code, WS_EVENT.roomUpdated, { room });
-
-  const votingDurationMs = Math.max(1000, Number(room.options.votingTimerSeconds ?? 30) * 1000);
-  setTimeout(() => {
-    const activeRoom = rooms.get(room.code);
-    if (!activeRoom || activeRoom.status !== 'voting') {
-      return;
-    }
-
-    finalizeVoting(activeRoom);
-  }, votingDurationMs);
-}
-
-function storeVote(room: Room, voterId: string, targetPlayerId: string, socket: WebSocket) {
-  const votes = votesByRoom.get(room.code) ?? [];
-  const existingVoteIndex = votes.findIndex((vote) => vote.voterId === voterId);
-  const nextVote: Vote = {
-    voterId,
-    targetPlayerId,
-    submittedAt: new Date().toISOString()
-  };
-
-  if (existingVoteIndex >= 0) {
-    votes[existingVoteIndex] = nextVote;
-  } else {
-    votes.push(nextVote);
-  }
-
-  votesByRoom.set(room.code, votes);
-  socket.send(JSON.stringify({
-    type: WS_EVENT.voteSubmitted,
-    payload: { targetPlayerId }
-  }));
-
-  const everyoneVoted = room.players.every((player) => votes.some((vote) => vote.voterId === player.id));
-  if (everyoneVoted) {
-    finalizeVoting(room);
-  }
-}
-
-function finalizeVoting(room: Room) {
-  const votes = votesByRoom.get(room.code) ?? [];
-  const tally = new Map<string, number>();
-
-  for (const vote of votes) {
-    if (vote.targetPlayerId === 'skip') {
-      continue;
-    }
-    tally.set(vote.targetPlayerId, (tally.get(vote.targetPlayerId) ?? 0) + 1);
-  }
-
-  const sortedTally = Array.from(tally.entries())
-    .map(([playerId, count]) => ({ playerId, count }))
-    .sort((a, b) => b.count - a.count || a.playerId.localeCompare(b.playerId));
-
-  const topCount = sortedTally[0]?.count ?? 0;
-  const leaderIds = sortedTally.filter((entry) => entry.count === topCount).map((entry) => entry.playerId);
-
-  const revealedRoles = room.players.map((player) => ({
-    playerId: player.id,
-    role: roomAssignments.get(room.code)?.get(player.id) ?? 'civilian'
-  }));
-
-  const winningTeam = (() => {
-    if (leaderIds.length !== 1) {
-      return 'imposter';
-    }
-
-    const winnerRole = roomAssignments.get(room.code)?.get(leaderIds[0]) ?? 'civilian';
-    return winnerRole === 'imposter' ? 'civilian' : 'imposter';
-  })();
-
-  const payload = {
-    roomCode: room.code,
-    tally: sortedTally,
-    winnerId: leaderIds.length === 1 ? leaderIds[0] : null,
-    tiedPlayerIds: leaderIds.length > 1 ? leaderIds : [],
-    totalVotes: votes.length,
-    skipVotes: votes.filter((vote) => vote.targetPlayerId === 'skip').length,
-    winningTeam,
-    revealedRoles,
-    prompts: roundPromptsByRoom.get(room.code)
-  };
-
-  room.status = 'results';
-  room.phaseEndsAt = undefined;
-  broadcastToRoom(room.code, WS_EVENT.votingResults, payload);
-  broadcastToRoom(room.code, WS_EVENT.roomUpdated, { room });
-}
-
-function broadcastToRoom(roomCode: string, event: string, payload: unknown, excludeSocket?: WebSocket) {
-  for (const session of sessions.values()) {
-    if (session.roomCode === roomCode && session.socket !== excludeSocket && session.socket) {
-      session.socket.send(JSON.stringify({ type: event, payload }));
-    }
-  }
-}
-
-function assignPromptsToRoom(room: Room): PromptAssignment[] {
-  const playerIds = room.players.map((player) => player.id);
-  const imposterCount = Math.min(room.options.imposterCount, playerIds.length - 1);
-  const shuffledIds = [...playerIds].sort(() => Math.random() - 0.5);
-  const imposterIds = new Set(shuffledIds.slice(0, imposterCount));
-
-  const recentPromptIds = recentPromptIdsByRoom.get(room.code) ?? [];
-  const promptPair = getRandomPromptPair(new Set(recentPromptIds));
-  recentPromptIdsByRoom.set(
-    room.code,
-    [...recentPromptIds, promptPair.normalPromptId, promptPair.oddPromptId].slice(-RECENT_PROMPT_LIMIT)
-  );
-
-  return room.players.map((player) => ({
-    playerId: player.id,
-    role: imposterIds.has(player.id) ? 'imposter' : 'civilian',
-    prompt: imposterIds.has(player.id) ? promptPair.oddPrompt : promptPair.normalPrompt
-  }));
 }
 
 function generateRoomCode() {

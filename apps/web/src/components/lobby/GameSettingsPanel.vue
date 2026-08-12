@@ -58,16 +58,18 @@
 import { computed } from 'vue'
 import type { GameMode } from './gameModes'
 import { GAME_MODES } from './gameModes'
-const props = defineProps<{ modeKey: string; roomOptions?: any }>()
-const emit = defineEmits<{ 'change-setting': [setting: string, value: any] }>()
+import type { RoomOptions, RoomSetting } from '@odd-prompt/shared'
+
+const props = defineProps<{ modeKey: string; roomOptions?: RoomOptions }>()
+const emit = defineEmits<{ 'change-setting': [setting: RoomSetting, value: string | number] }>()
 
 const mode = computed<GameMode | undefined>(() => GAME_MODES[props.modeKey])
 
-function getValue(key: string, fallback: any) {
-  return props.roomOptions?.[key] ?? fallback
+function getValue(key: string, fallback: string | number) {
+  return props.roomOptions?.[key as keyof RoomOptions] ?? fallback
 }
 
-function onNumberChange(key: string, event: Event) {
+function onNumberChange(key: RoomSetting, event: Event) {
   const target = event.target as HTMLInputElement | null
   const raw = target?.value
   if (raw === '' || raw == null) return
@@ -76,14 +78,14 @@ function onNumberChange(key: string, event: Event) {
   emit('change-setting', key, value)
 }
 
-function onSelectChange(key: string, event: Event) {
+function onSelectChange(key: RoomSetting, event: Event) {
   const target = event.target as HTMLSelectElement | null
   const value = target?.value
   if (value == null) return
   emit('change-setting', key, value)
 }
 
-function onTextChange(key: string, event: Event) {
+function onTextChange(key: RoomSetting, event: Event) {
   const target = event.target as HTMLInputElement | null
   const value = target?.value
   if (value == null) return

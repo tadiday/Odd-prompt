@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { WS_EVENT, Room, Player, ErrorPayload, RoomOptions, PromptAssignment, Answer, RoundPrompts } from '@odd-prompt/shared';
-import { socketService } from '../services/socket';
+import { WS_EVENT, Room, Player, ErrorPayload, RoomOptions, PromptAssignment, Answer, RoundPrompts, RoomSetting, VotingResults } from '@odd-prompt/shared';
+import { socketService } from '../services/socketClient';
 
 export const useGameStore = defineStore('game', () => {
   const currentRoom = ref<Room | null>(null);
@@ -141,17 +141,7 @@ export const useGameStore = defineStore('game', () => {
   const submittedAnswer = ref<Answer | null>(null);
   const revealAnswers = ref<Answer[] | null>(null);
   const revealedPrompts = ref<RoundPrompts | null>(null);
-  const votingResults = ref<{
-    roomCode: string;
-    tally: Array<{ playerId: string; count: number }>;
-    winnerId: string | null;
-    tiedPlayerIds: string[];
-    totalVotes: number;
-    skipVotes: number;
-    winningTeam?: 'imposter' | 'civilian';
-    revealedRoles?: Array<{ playerId: string; role: 'imposter' | 'civilian' }>;
-    prompts?: RoundPrompts;
-  } | null>(null);
+  const votingResults = ref<VotingResults | null>(null);
   const submittedVote = ref<string | null>(null);
 
 
@@ -250,10 +240,7 @@ export const useGameStore = defineStore('game', () => {
     socketService.send(WS_EVENT.startGame, { roomCode: currentRoom.value.code });
   }
 
-  function updateRoomSetting(
-    setting: 'maxPlayers' | 'answerTimerSeconds' | 'votingTimerSeconds' | 'imposterCount',
-    value: number
-  ) {
+  function updateRoomSetting(setting: RoomSetting, value: string | number) {
     if (!currentRoom.value || !isHost.value) {
       return;
     }

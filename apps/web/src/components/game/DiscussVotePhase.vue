@@ -86,9 +86,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useGameStore } from '../../stores/game'
+import { useGameStore } from '../../stores/gameStore'
 import ProgressiveFooter from './ProgressiveFooter.vue'
-import PlayerAvatar from '../PlayerAvatar.vue'
+import PlayerAvatar from '../common/PlayerAvatar.vue'
 const gameStore = useGameStore()
 const selectedVote = ref<string | null>(null)
 const isSubmitting = ref(false)
