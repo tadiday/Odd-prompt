@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import coolCat from '../assets/avatars/cool-cat.png'
@@ -218,6 +218,15 @@ const guides = [
 
 const currentGuide = computed(() => guides[activeGuide.value])
 
+watch(
+  () => gameStore.roomCode,
+  (confirmedRoomCode) => {
+    if (confirmedRoomCode) {
+      router.push(`/lobby/${confirmedRoomCode}`)
+    }
+  }
+)
+
 function createRoom() {
   if (!hostName.value.trim()) {
     gameStore.errorMessage = 'Please enter a name'
@@ -228,7 +237,6 @@ function createRoom() {
     hostName.value.trim(),
     avatars[selectedAvatar.value].id
   )
-  router.push('/lobby')
 }
 
 function joinRoom() {
@@ -238,8 +246,8 @@ function joinRoom() {
   }
 
   const normalizedRoomCode = roomCode.value.trim().toUpperCase()
-  if (!normalizedRoomCode) {
-    gameStore.errorMessage = 'Please enter a room code'
+  if (!/^[A-Z0-9]{6}$/.test(normalizedRoomCode)) {
+    gameStore.errorMessage = 'Room codes must be 6 letters or numbers'
     return
   }
 
@@ -248,7 +256,6 @@ function joinRoom() {
     playerName.value.trim(),
     avatars[selectedAvatar.value].id
   )
-  router.push(`/lobby/${normalizedRoomCode}`)
 }
 </script>
 
