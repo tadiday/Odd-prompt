@@ -1,39 +1,31 @@
 <template>
   <main class="home-page">
-    <section class="evidence-board">
+    <EvidenceBoard>
       <header class="home-header">
-        <div class="brand">
+        <EvidencePin id="header-left" position="top-left" /><EvidencePin id="header-right" position="top-right" />
+        <div class="header-left">
+          <button class="language-button">◎ &nbsp; EN⌄</button>
+        </div>
+        <div class="header-tools">
+          <button aria-label="Help">?</button><button aria-label="Music">♫</button><button aria-label="Sound">◕</button>
+        </div>
+      </header>
+      <EvidenceStrings :connections="evidenceConnections" />
+
+      <div class="case-heading">
+        <EvidencePin id="hero-left" position="top-left" /><EvidencePin id="hero-right" position="top-right" />
+        <span class="stamp">CONFIDENTIAL</span>
+        <div class="hero-brand brand">
           <span class="brand-hat">🎩</span>
           <div><h1>ODD <b>PROMPT</b></h1><p>THE PARTY GAME OF <em>HIDDEN IDENTITIES</em></p></div>
         </div>
-        <div class="header-tools">
-          <button>◎ &nbsp; EN⌄</button><button aria-label="Help">?</button><button aria-label="Music">♫</button><button aria-label="Sound">◕</button>
-        </div>
-      </header>
-      <svg class="red-strings" viewBox="0 0 1200 650" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M120 130 L365 325 L130 475 L500 555 L1025 470 L850 320 L1080 130" />
-        <path d="M140 305 L500 555 L700 570 L1040 300" />
-      </svg>
-
-      <div class="case-heading">
-        <span class="stamp">CONFIDENTIAL</span>
-        <h2>TRUST <b>NO ONE.</b></h2>
-        <p>One prompt is not like the others.<br />Can you find the <em>Odd One?</em></p>
       </div>
 
-      <button
-        v-for="(avatar, index) in avatars"
-        :key="avatar.id"
-        class="suspect-card"
-        :class="[`suspect-${index}`, { selected: selectedAvatar === index }]"
-        :aria-label="`Choose ${avatar.name}`"
-        @click="selectedAvatar = index"
-      >
-        <i class="pin"></i><img :src="avatar.src" alt="" /><strong>{{ suspectName(avatar.name) }}</strong><small v-if="selectedAvatar === index">✓ SELECTED</small>
-      </button>
+      <EvidenceCard v-for="(suspect, index) in suspects" :key="suspect.id" :suspect="suspect" :selected="selectedAvatar === index" @select="selectedAvatar = index" />
 
       <section class="operations">
         <article class="operation-note create-note">
+          <EvidencePin id="create-left" position="top-left" /><EvidencePin id="create-right" position="top-right" />
           <h3>★ &nbsp; CREATE ROOM &nbsp; ★</h3>
           <div class="chosen-agent"><img :src="avatars[selectedAvatar].src" alt="" /><span>SELECTED SUSPECT<b>{{ suspectName(avatars[selectedAvatar].name) }}</b></span></div>
           <label for="host-name">AGENT NAME</label>
@@ -41,6 +33,7 @@
           <button @click="createRoom"><span>♟</span> CREATE ROOM <b>→</b></button>
         </article>
         <article class="operation-note join-note">
+          <EvidencePin id="join-left" position="top-left" /><EvidencePin id="join-right" position="top-right" />
           <h3>★ &nbsp; JOIN ROOM &nbsp; ★</h3>
           <label for="player-name">AGENT NAME</label>
           <input id="player-name" v-model="playerName" maxlength="20" placeholder="ENTER YOUR NAME" />
@@ -50,8 +43,7 @@
         </article>
       </section>
 
-      <p class="case-note">Every game is a new case.<br />Every friend could be <b>the odd one.</b></p>
-      <button class="how-to-note" @click="showGuide = !showGuide">HOW TO PLAY →</button>
+      <aside class="how-to-note taped-action" role="button" tabindex="0" @click="showGuide = !showGuide" @keydown.enter="showGuide = !showGuide" @keydown.space.prevent="showGuide = !showGuide"><i aria-hidden="true"></i><span>HOW TO PLAY</span><b>Open the case briefing →</b></aside>
       <aside v-if="showGuide" class="guide-note">
         <button aria-label="Close guide" @click="showGuide = false">×</button>
         <h3>HOW TO PLAY</h3>
@@ -59,14 +51,12 @@
         <p><b>02</b> Answer and discuss without revealing your prompt.</p>
         <p><b>03</b> Vote for the agent you think is the Odd One.</p>
       </aside>
-      <aside class="sticky sticky-left">Looks<br />suspicious...<br />or not?</aside>
-      <aside class="sticky sticky-right">One of them<br />doesn't get<br />the real prompt.</aside>
-      <aside class="case-file"><b>CASE FILE</b><span>OBJECTIVE:<br />Find and vote out<br />the Odd One.</span></aside>
-      <aside class="case-status">CASE STATUS:<b>WAITING FOR AGENTS</b></aside>
+      <BoardNote v-for="note in boardDecorations" :key="note.id" :note="note" />
+      <NewspaperClipping v-for="article in newspaperClippings" :key="article.id" :article="article" />
       <div v-if="gameStore.errorMessage" class="alert" role="alert">{{ gameStore.errorMessage }}</div>
-    </section>
+    </EvidenceBoard>
 
-    <footer><button aria-label="Settings">⚙</button><p>WHO IS<br />THE <b>ODD ONE?</b></p><nav><a href="#">PRIVACY</a><a href="#">CONTACT</a></nav></footer>
+    <footer><nav><a href="#">PRIVACY</a><a href="#">CONTACT</a></nav></footer>
   </main>
 </template>
 
@@ -75,6 +65,15 @@ import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/gameStore'
 import { avatars } from '../data/avatars'
+import EvidenceStrings from '../components/common/EvidenceStrings.vue'
+import EvidenceBoard from '../components/evidence-board/EvidenceBoard.vue'
+import EvidenceCard from '../components/evidence-board/EvidenceCard.vue'
+import NewspaperClipping from '../components/evidence-board/NewspaperClipping.vue'
+import BoardNote from '../components/evidence-board/BoardNote.vue'
+import EvidencePin from '../components/evidence-board/EvidencePin.vue'
+import { suspects } from '../data/suspects'
+import { evidenceConnections } from '../data/connections'
+import { boardDecorations, newspaperClippings } from '../data/boardDecorations'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -83,7 +82,6 @@ const hostName = ref('')
 const playerName = ref('')
 const roomCode = ref('')
 const showGuide = ref(false)
-
 function suspectName(name: string) {
   return name.replace(/^Cool /, '').toUpperCase()
 }

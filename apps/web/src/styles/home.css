@@ -60,7 +60,7 @@
 .evidence-board{width:calc(100vw - 24px);height:calc(100vh - 24px);max-width:none;max-height:none;min-height:680px;margin:0}
 .evidence-board>.home-header{position:absolute;z-index:12;top:12px;right:22px;left:22px;width:auto;height:72px;padding:0 14px 10px;border-bottom:1px solid #8c6344;margin:0;color:var(--case-cream)}
 .evidence-board .brand-hat{font-size:2.25rem}.evidence-board .brand h1{font-size:2rem}.evidence-board .brand p{font-size:.5rem}.evidence-board .header-tools button{height:38px;min-width:38px;border-color:#9b8467;background:#18120dcc}
-@media(min-width:901px){.case-heading{top:95px}.operations{top:250px}.suspect-0,.suspect-1{top:100px}.suspect-2,.suspect-3{top:285px}.suspect-4,.suspect-5{top:470px}.sticky-left,.sticky-right{top:185px}.case-note{bottom:135px}.how-to-note{bottom:130px}.case-file,.case-status{bottom:132px}}
+@media(min-width:901px){.case-heading{top:95px}.operations{top:270px}.suspect-0,.suspect-1{top:100px}.suspect-2,.suspect-3{top:285px}.suspect-4,.suspect-5{top:470px}.sticky-left,.sticky-right{top:185px}.case-note{bottom:135px}.how-to-note{bottom:130px}.case-file,.case-status{bottom:132px}}
 @media(max-width:900px){.home-page{display:block;padding:8px}.evidence-board{width:100%;height:auto;min-height:1180px}.evidence-board>.home-header{position:relative;top:auto;right:auto;left:auto;width:100%;height:76px}.case-heading{margin-top:18px}}
 @media(max-width:600px){.evidence-board{min-height:1080px}.evidence-board .brand p{display:none}.evidence-board .brand h1{font-size:1.55rem}.evidence-board .brand-hat{font-size:1.7rem}}
 
@@ -71,3 +71,44 @@
 
 /* Match the board coordinates used by lobby and game phases. */
 @media(min-width:901px){.home-page{padding:var(--case-board-top) 28px var(--case-board-bottom-gap)}.evidence-board{width:min(var(--case-board-width),calc(100vw - 90px));height:calc(100vh - var(--case-board-top) - var(--case-board-bottom-gap));min-height:650px;max-height:none}}
+
+/* Looser suspect placement: intentionally uneven, while the center stays clear. */
+@media(min-width:1101px){
+  .suspect-card{transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+  .suspect-0{top:138px;left:12px;width:103px;transform:rotate(-8deg)}
+  .suspect-1{top:151px;right:9px;width:92px;transform:rotate(7deg)}
+  .suspect-2{top:330px;left:45px;width:89px;transform:rotate(5deg)}
+  .suspect-3{top:350px;right:38px;width:101px;transform:rotate(-6deg)}
+  .suspect-4{top:515px;left:9px;width:98px;transform:rotate(-9deg)}
+  .suspect-5{top:530px;right:12px;width:105px;transform:rotate(8deg)}
+  .suspect-6{bottom:8px;left:18%;width:91px;transform:rotate(7deg)}
+  .suspect-7{bottom:54px;left:29.5%;width:102px;transform:rotate(-8deg)}
+  .suspect-8{bottom:-12px;left:43%;width:96px;transform:rotate(4deg)}
+  .suspect-9{bottom:72px;left:56%;width:88px;transform:rotate(-7deg)}
+  .suspect-10{bottom:14px;left:68.5%;width:104px;transform:rotate(6deg)}
+  .suspect-11{bottom:48px;left:82%;width:94px;transform:rotate(-6deg)}
+  .suspect-card:hover,.suspect-card.selected{transform:translateY(-5px) rotate(0deg) scale(1.06)!important}
+}
+
+@media(min-width:1101px){
+  .evidence-board>.home-header{background:linear-gradient(180deg,#5b3d28f2,#5b3d28d9);box-shadow:0 8px 14px #2b170d42}
+  .how-to-note{right:auto;bottom:auto;top:57%;left:53%;transform:rotate(2deg)}
+}
+
+/* Readable type floor without changing the original center composition. */
+.operation-note h3{font-size:1.05rem}.operation-note label{font-size:.7rem;font-weight:700;letter-spacing:.035em}.chosen-agent{font-size:.68rem}.chosen-agent b{font-size:.8rem}.operation-note input{font-size:1rem}.operation-note>button{font-size:1.08rem}.case-heading p{font-size:.94rem}.sticky,.case-file{font-size:.8rem}.case-status{font-size:.7rem}.case-note{font-size:.76rem}.how-to-note{font-size:.8rem}.brand p{font-size:.68rem}
+.case-heading,.operation-note{position:relative}
+.taped-action{display:flex;min-width:190px;flex-direction:column;align-items:flex-start;gap:4px;padding:15px 18px 12px!important;border:0;background:#b9a17b!important;color:#38281b!important;text-align:left;box-shadow:2px 4px 7px #0008!important;cursor:pointer}.taped-action:focus-visible{outline:2px solid #8f2a24;outline-offset:3px}.taped-action i{position:absolute;top:-9px;left:50%;width:52px;height:18px;background:linear-gradient(90deg,#b49a6dcc,#dec99ddd 18%,#c1a978e6 80%,#9e8257cc);box-shadow:0 1px 2px #0005;transform:translateX(-50%) rotate(-3deg);clip-path:polygon(3% 8%,97% 0,94% 91%,4% 100%)}.taped-action span{color:#792b25;font:1rem 'Staatliches';letter-spacing:.06em}.taped-action b{font:normal .65rem 'Special Elite'}
+.evidence-board>.home-header{padding:10px 18px!important;border:1px solid #765f43!important;background:repeating-linear-gradient(0deg,#c9b996 0 25px,#9d8968 26px)!important;color:#251c14!important;box-shadow:3px 6px 10px #160b0677!important;transform:rotate(-.15deg)}
+.header-left{display:flex;align-items:center;gap:26px}.language-button{height:38px;padding:0 17px;border:1px solid #705c43;border-radius:2px;background:#b9a681;color:#251c14;font:bold .8rem 'Special Elite';box-shadow:1px 2px 3px #0005;cursor:pointer}.evidence-board .header-tools button{background:#2a2119;color:#eee2cc}.evidence-board .header-tools button:first-child{border-radius:50%;padding:0}
+.odd-one-mark{display:inline-flex;align-items:center;gap:4px}.odd-one-mark>span{font-size:1.05rem;filter:sepia(.35) drop-shadow(1px 1px 1px #0005)}
+.hero-brand{position:relative;z-index:1;justify-content:center;margin:10px auto 0}.hero-brand .brand-hat{font-size:3.2rem}.hero-brand h1{color:#251c14;font-size:2.8rem}.hero-brand p{color:#251c14;font-size:.68rem}.hero-brand em{color:#9d2c25}
+@media(max-width:900px){.language-button{display:none}.header-left{gap:0}}
+
+/* Dated evidence and scattered newspaper fragments. */
+.evidence-date{position:absolute;z-index:3;top:8px;right:-13px;padding:3px 5px;border:1px solid #8b632f;background:#d0b263;color:#4a2d18;font:bold .5rem 'Special Elite';letter-spacing:.04em;transform:rotate(7deg);box-shadow:1px 2px 3px #0007}
+.suspect-card:nth-of-type(even) .evidence-date{right:auto;left:-12px;transform:rotate(-8deg)}
+.news-clipping{position:absolute;z-index:2;width:175px;padding:11px 13px;border:1px solid #6d5b43;background:repeating-linear-gradient(0deg,#c8b995 0 18px,#a3916e 19px);color:#2a2118;box-shadow:3px 5px 8px #140a0688;filter:sepia(.18)}
+.news-clipping:before{content:'';position:absolute;inset:5px;border:1px solid #4c403155;pointer-events:none}.news-clipping span{display:block;padding-bottom:4px;border-bottom:2px solid #3e3327;font:bold .52rem 'Special Elite';letter-spacing:.08em}.news-clipping b{display:block;margin:7px 0 5px;font:1rem/1.05 'Staatliches';letter-spacing:.045em}.news-clipping p{margin:0;font-size:.58rem;line-height:1.35}
+.news-one{left:14%;top:48%;transform:rotate(-8deg)}.news-two{right:15%;top:51%;transform:rotate(7deg)}.news-three{left:42%;bottom:24%;width:160px;transform:rotate(3deg)}
+@media(max-width:1250px){.news-one,.news-two{width:145px}.news-three{display:none}}@media(max-width:1000px){.news-clipping{display:none}}
