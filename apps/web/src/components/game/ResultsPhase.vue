@@ -159,3 +159,4 @@ header span { font-size: 1.7rem; }
   .next-round-action { position: static; margin: -8px 0 20px; text-align: center; }
 }
 </style>
+<style scoped src="../../styles/game-phases.css"></style>

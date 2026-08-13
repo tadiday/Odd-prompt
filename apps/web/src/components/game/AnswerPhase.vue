@@ -187,3 +187,4 @@ watch(
   .textarea-wrap textarea { height: 150px; font-size: 0.9rem; }
 }
 </style>
+<style scoped src="../../styles/game-phases.css"></style>

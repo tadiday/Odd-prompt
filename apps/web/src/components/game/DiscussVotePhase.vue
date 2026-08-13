@@ -224,3 +224,4 @@ watch(
   .answer-list article { grid-template-columns: 40px 115px 1fr; }
 }
 </style>
+<style scoped src="../../styles/game-phases.css"></style>

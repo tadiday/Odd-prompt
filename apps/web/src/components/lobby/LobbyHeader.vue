@@ -8,7 +8,7 @@
 
     <!-- CENTER -->
     <div class="brand">
-      <div class="brand-mark">O</div>
+      <div class="brand-mark">🎩</div>
 
       <div class="brand-content">
         <div class="brand-title">
@@ -344,4 +344,14 @@ defineEmits<{
     font-size: 1.1rem;
   }
 }
+</style>
+
+<style scoped>
+.topbar{position:absolute;z-index:30;top:32px;left:50%;height:var(--case-header-height);min-height:var(--case-header-height);width:min(calc(var(--case-board-width) - 56px),calc(100vw - 146px));margin:0;transform:translateX(-50%);border-bottom:1px solid #8c6344}.brand-mark{background:transparent;box-shadow:none;font-size:2.5rem}.brand-title{font-size:2.35rem}.brand-subtitle{letter-spacing:.12em}.leave-button{left:0}.top-actions{right:0}
+</style>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Staatliches&display=swap');
+.topbar{height:105px;min-height:105px;align-items:center;padding:10px 26px;color:#d8cbb4;font-family:'Special Elite',Georgia,serif}.leave-button{top:29px;left:26px;padding:9px 13px;border:1px solid #81725e;border-radius:3px;background:#12110e;color:#d8cbb4;font:0.65rem 'Special Elite'}.leave-button:hover{background:#2b2118}.brand-mark{width:52px;height:52px;border:0;background:#9f2a23;box-shadow:inset 0 0 0 5px #761a16,2px 3px 5px #0008;color:#eadcc5;font-family:'Staatliches'}.brand-title{color:#d8cbb4;font:2.25rem 'Staatliches';letter-spacing:.03em}.brand-title strong{padding:0;border:0;border-radius:0;color:#ad3027}.brand-subtitle{margin-top:7px;color:#d8cbb4;font-size:.55rem;letter-spacing:.18em}.top-actions{top:34px;right:28px;border:1px solid #776b59;background:#11110e;color:#d8cbb4;font-size:.6rem}.connection-text{color:#d8cbb4}.connection-dot{border-color:#c7b99f}
+@media(max-width:680px){.topbar{height:90px;min-height:90px}.brand-title{font-size:1.6rem}.brand-mark{width:42px;height:42px}.leave-button{top:25px}.brand-subtitle{font-size:.42rem}}
 </style>

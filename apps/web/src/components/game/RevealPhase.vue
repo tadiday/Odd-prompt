@@ -36,12 +36,14 @@
             </p>
         </article>
     </div>
+    <ProgressiveFooter active-phase="answer" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { useGameStore } from '../../stores/gameStore'
 import PlayerAvatar from '../common/PlayerAvatar.vue'
+import ProgressiveFooter from './ProgressiveFooter.vue'
 
 const gameStore = useGameStore()
 
@@ -174,3 +176,4 @@ function getPlayer(playerId: string) {
   }
 }
 </style>
+<style scoped src="../../styles/game-phases.css"></style>

@@ -26,7 +26,7 @@
         </span>
 
         <div class="mode-icon">
-          {{ key === 'classic' ? '🏆' : '🤝' }}
+          {{ key === 'classic' ? '♛' : '♣' }}
         </div>
 
         <strong>{{ mode.name }}</strong>

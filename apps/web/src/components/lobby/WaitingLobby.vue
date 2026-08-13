@@ -14,15 +14,15 @@
           class="outline-button"
           @click="copyRoomCode"
         >
-          🔗 COPY CODE
+          ⧉ COPY CODE
         </button>
       </div>
 
       <!-- Players -->
       <div class="players-header">
         <h3>
-          <span class="players-icon">👥</span>
-          PLAYERS
+          <span class="players-icon">♟</span>
+          SUSPECTS
           <span class="player-count">
             {{ players.length }}/{{ maxPlayers }}
           </span>
@@ -93,28 +93,6 @@
         {{ errorMessage }}
       </div>
 
-      <!-- Start -->
-      <div class="start-area">
-        <button
-          v-if="isHost"
-          class="primary-button"
-          @click="emit('start')"
-        >
-          <span class="play-icon">▶</span>
-          START GAME
-        </button>
-
-        <div
-          v-else
-          class="waiting-host"
-        >
-          Waiting for the host to start the game...
-        </div>
-
-        <small v-if="isHost">
-          Game will start when everyone is ready
-        </small>
-      </div>
     </section>
 
     <!-- ========================================
@@ -207,6 +185,14 @@
             @change-setting="handleModeSettingChange"
           />
         </div>
+      </div>
+
+      <div class="start-area">
+        <button v-if="isHost" class="primary-button" @click="emit('start')">
+          <span class="play-icon">▶</span> START GAME
+        </button>
+        <div v-else class="waiting-host">Waiting for the host to start the case...</div>
+        <small v-if="isHost">The case begins when every suspect is ready</small>
       </div>
     </section>
 

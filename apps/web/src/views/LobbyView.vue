@@ -77,9 +77,8 @@ function updateRoomSetting(setting: RoomSetting, value: string | number) {
 <style scoped>
 :global(body) {
   margin: 0;
-  background: #fff;
-  color: #111;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #080806;
+  color: #d9cbb4;
 }
 
 :global(html),
@@ -100,27 +99,29 @@ function updateRoomSetting(setting: RoomSetting, value: string | number) {
   min-height: 100vh;
   width: 100%;
   display: flex;
-  padding: 24px;
+  padding: 0 18px 12px;
   box-sizing: border-box;
-  background: #f3f3f3;
-  color: #111;
+  background: radial-gradient(circle at 50% 0, #4a3420 0, transparent 25%), radial-gradient(#76523718 1px, transparent 1px), #090a08;
+  background-size: auto, 7px 7px;
+  color: #d9cbb4;
   overflow: auto;
 }
 
 .game-shell {
+  position: relative;
   display: flex;
   width: 100%;
-  max-width: 1600px;
-  min-height: calc(100vh - 48px);
+  max-width: var(--case-board-width);
+  min-height: 100vh;
   flex-direction: column;
   margin: 0 auto;
-  padding: 0 24px 24px;
+  padding: 0 10px 12px;
   box-sizing: border-box;
   overflow: hidden;
-  border: 3px solid #111;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 4px 14px #00000014;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .header-divider {
@@ -129,7 +130,7 @@ function updateRoomSetting(setting: RoomSetting, value: string | number) {
   flex: 0 0 auto;
   margin: 0 auto 18px;
   border-radius: 999px;
-  background: #d8d8d8;
+  background: linear-gradient(90deg, transparent, #84211c, transparent);
 }
 
 @media (max-width: 700px) {
@@ -143,6 +144,10 @@ function updateRoomSetting(setting: RoomSetting, value: string | number) {
     overflow: visible;
     border-radius: 14px;
   }
+}
+
+.header-divider {
+  display: none;
 }
 
 </style>
