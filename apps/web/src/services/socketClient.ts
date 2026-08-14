@@ -3,6 +3,16 @@ import { reactive } from 'vue';
 export type SocketEventHandler = (payload: any) => void;
 
 const DEFAULT_PORTS = [3001, 3002, 3003, 3004, 3005];
+const configuredSocketUrl = import.meta.env.VITE_WEBSOCKET_URL?.trim();
+
+function productionSocketUrl() {
+  if (configuredSocketUrl) {
+    return configuredSocketUrl;
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/api/ws`;
+}
 
 class GameSocketService {
   private socket: WebSocket | null = null;
@@ -55,6 +65,11 @@ class GameSocketService {
   }
 
   private connectToNextPort() {
+    if (!import.meta.env.DEV || configuredSocketUrl) {
+      this.openSocket(productionSocketUrl());
+      return;
+    }
+
     const port = DEFAULT_PORTS[this.pendingAttempt];
     if (!port) {
       this.connectionState.status = 'disconnected';
@@ -62,7 +77,11 @@ class GameSocketService {
       return;
     }
 
-    const socket = new WebSocket(`ws://localhost:${port}`);
+    this.openSocket(`ws://localhost:${port}`, port);
+  }
+
+  private openSocket(url: string, port?: number) {
+    const socket = new WebSocket(url);
     this.socket = socket;
 
     socket.addEventListener('open', () => {
@@ -72,7 +91,7 @@ class GameSocketService {
       }
 
       this.connectionState.status = 'connected';
-      this.emit('connected', { port });
+      this.emit('connected', { url, port });
       this.flushQueue();
     });
 
@@ -95,8 +114,14 @@ class GameSocketService {
       }
 
       this.socket = null;
-      this.pendingAttempt += 1;
-      this.connectToNextPort();
+      if (import.meta.env.DEV && !configuredSocketUrl) {
+        this.pendingAttempt += 1;
+        this.connectToNextPort();
+        return;
+      }
+
+      this.connectionState.status = 'disconnected';
+      this.emit('disconnected', { url });
     });
 
     socket.addEventListener('error', () => {

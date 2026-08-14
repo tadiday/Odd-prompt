@@ -1,4 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
+import { pathToFileURL } from 'node:url';
 import { v4 as uuidv4 } from 'uuid';
 import { WS_EVENT, type Room, type Player, type Answer, type RoomOptions } from '@odd-prompt/shared';
 import { assignPromptsToRoom, broadcastToRoom, finalizeAnswerPhase, storeVote } from '../game/gamePhases.js';
@@ -6,10 +7,14 @@ import { answersByRoom, clearRoomState, recentPromptIdsByRoom, roomAssignments, 
 
 const preferredPort = Number(process.env.PORT ?? 3001);
 
-startServer(preferredPort);
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  startServer(preferredPort);
+}
 
-function startServer(port: number) {
+export function startServer(port: number) {
   const wss = new WebSocketServer({ port });
+
+  attachGameSocketServer(wss);
 
   wss.on('listening', () => {
     const address = wss.address();
@@ -17,6 +22,19 @@ function startServer(port: number) {
     console.log(`Off Prompt server listening on ws://localhost:${actualPort}`);
   });
 
+  wss.on('error', (error: NodeJS.ErrnoException) => {
+    if (error.code === 'EADDRINUSE') {
+      console.warn(`Port ${port} is already in use. Trying ${port + 1} instead.`);
+      wss.close();
+      startServer(port + 1);
+      return;
+    }
+
+    console.error('WebSocket server error', error);
+  });
+}
+
+export function attachGameSocketServer(wss: WebSocketServer) {
   wss.on('connection', (socket) => {
     socket.on('message', (raw) => {
       try {
@@ -55,16 +73,6 @@ function startServer(port: number) {
     });
   });
 
-  wss.on('error', (error: NodeJS.ErrnoException) => {
-    if (error.code === 'EADDRINUSE') {
-      console.warn(`Port ${port} is already in use. Trying ${port + 1} instead.`);
-      wss.close();
-      startServer(port + 1);
-      return;
-    }
-
-    console.error('WebSocket server error', error);
-  });
 }
 
 function handleMessage(socket: WebSocket, message: { type: string; payload?: any }) {

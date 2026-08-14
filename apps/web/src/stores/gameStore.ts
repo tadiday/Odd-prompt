@@ -202,9 +202,9 @@ export const useGameStore = defineStore('game', () => {
   function createRoom(hostName: string, avatarId: string) {
     const options: RoomOptions = {
       imposterCount: 1,
-      answerTimerSeconds: 3600,
-      discussionTimerSeconds: 10,
-      votingTimerSeconds: 10,
+      answerTimerSeconds: 45,
+      discussionTimerSeconds: 60,
+      votingTimerSeconds: 30,
       isPrivate: true
     };
 

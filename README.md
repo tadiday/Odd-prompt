@@ -77,8 +77,28 @@ Prompts live in `apps/server/src/prompts/promptData.ts`. Each prompt is paired w
 
 - Rooms and game state are stored in memory and disappear when the server restarts.
 - There is no account system or reconnect persistence.
-- The client currently supports local/non-TLS WebSocket connections (`ws://`). A hosted HTTPS deployment will need secure WebSocket (`wss://`) configuration.
 - Classic mode is available; the co-op mode shown in the codebase is not yet enabled.
+
+## Deploying to Vercel
+
+The `build` branch contains a Vercel-ready deployment configuration. Vercel
+builds the Vue application from `apps/web`, serves the WebSocket game server at
+`/api/ws`, and sends `/lobby/*` URLs back to the Vue router.
+
+1. Push the `build` branch to GitHub.
+2. Import the repository into Vercel and leave the project root at the repository root.
+3. Set **Production Branch** to `build` in Vercel's Git settings.
+4. Enable Fluid Compute for the project if it is not already enabled.
+5. Deploy. No environment variables are required for a same-domain deployment.
+
+Production clients automatically connect to `wss://<deployment-domain>/api/ws`.
+For a separately hosted game server, set `VITE_WEBSOCKET_URL` to its secure
+WebSocket URL before building.
+
+Vercel WebSockets currently run on Functions and therefore have a maximum
+connection duration. Rooms are held in memory, so this setup is intended for
+playtests and small releases. A larger production deployment should persist room
+state in Redis so multiple Function instances can share rooms.
 
 ## Production build
 
@@ -86,4 +106,4 @@ Prompts live in `apps/server/src/prompts/promptData.ts`. Each prompt is paired w
 npm run build
 ```
 
-Build output is written to each app's `dist` directory. The repository does not currently include production hosting or process-manager configuration.
+Build output is written to each app's `dist` directory. Vercel deployment behavior is configured in `vercel.json`.
