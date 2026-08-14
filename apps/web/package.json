@@ -8,7 +8,7 @@
     "build": "vue-tsc -b && vite build"
   },
   "dependencies": {
-    "@odd-prompt/shared": "workspace:packages/shared",
+    "@odd-prompt/shared": "*",
     "pinia": "^2.2.4",
     "vue": "^3.5.2",
     "vue-router": "^4.4.10"
