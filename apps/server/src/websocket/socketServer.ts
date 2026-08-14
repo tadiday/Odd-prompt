@@ -1,7 +1,8 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { pathToFileURL } from 'node:url';
 import { v4 as uuidv4 } from 'uuid';
-import { WS_EVENT, type Room, type Player, type Answer, type RoomOptions } from '@odd-prompt/shared';
+import type { Room, Player, Answer, RoomOptions } from '@odd-prompt/shared';
+import { WS_EVENT } from './wsEvents.js';
 import { assignPromptsToRoom, broadcastToRoom, finalizeAnswerPhase, storeVote } from '../game/gamePhases.js';
 import { answersByRoom, clearRoomState, recentPromptIdsByRoom, roomAssignments, rooms, roundPromptsByRoom, sessions, votesByRoom, type PlayerSession } from '../game/gameState.js';
 

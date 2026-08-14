@@ -1,5 +1,6 @@
 import type { WebSocket } from 'ws';
-import { WS_EVENT, type PromptAssignment, type Room, type Vote } from '@odd-prompt/shared';
+import type { PromptAssignment, Room, Vote } from '@odd-prompt/shared';
+import { WS_EVENT } from '../websocket/wsEvents.js';
 import { getRandomPromptPair } from '../prompts/promptSelector.js';
 import {
   answersByRoom,

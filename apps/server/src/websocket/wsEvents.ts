@@ -1,0 +1,30 @@
+// Runtime copy of the shared wire-protocol names. Keep this synchronized with
+// packages/shared/src/index.ts; server type imports can remain type-only and are
+// erased from the Vercel function bundle.
+export const WS_EVENT = {
+  createRoom: 'createRoom',
+  joinRoom: 'joinRoom',
+  leaveRoom: 'leaveRoom',
+  startGame: 'startGame',
+  updateHostSettings: 'updateHostSettings',
+  submitAnswer: 'submitAnswer',
+  submitVote: 'submitVote',
+  skipVote: 'skipVote',
+  readyForNextRound: 'readyForNextRound',
+  roomCreated: 'roomCreated',
+  roomJoined: 'roomJoined',
+  roomUpdated: 'roomUpdated',
+  playerJoined: 'playerJoined',
+  playerLeft: 'playerLeft',
+  gameStarted: 'gameStarted',
+  promptAssigned: 'promptAssigned',
+  answerSubmitted: 'answerSubmitted',
+  roundReveal: 'roundReveal',
+  discussionStarted: 'discussionStarted',
+  votingStarted: 'votingStarted',
+  voteSubmitted: 'voteSubmitted',
+  votingResults: 'votingResults',
+  roundEnded: 'roundEnded',
+  roomClosed: 'roomClosed',
+  error: 'error',
+} as const
