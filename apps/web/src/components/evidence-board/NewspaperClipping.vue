@@ -20,7 +20,7 @@ defineProps<{ article: NewspaperArticle }>()
   padding: 11px 13px;
   border: 1px solid #6d5b43;
   background: repeating-linear-gradient(0deg,#c8b995 0 18px,#a3916e 19px);
-  color: #2a2118;
+  color: #1f1812;
   box-shadow: 3px 5px 8px #140a0688;
   filter: sepia(.18);
 }
@@ -36,21 +36,21 @@ defineProps<{ article: NewspaperArticle }>()
   display: block;
   padding-bottom: 4px;
   border-bottom: 2px solid #3e3327;
-  font: bold .52rem 'Special Elite';
+  font: bold .7rem 'Special Elite';
   letter-spacing: .04em;
 }
 
 .newspaper b {
   display: block;
   margin: 7px 0 5px;
-  font: 1rem/1.05 'Staatliches';
+  font: 1.08rem/1.08 'Staatliches';
 }
 
 .newspaper p {
   margin: 0;
   white-space: pre-line;
-  font-size: .58rem;
-  line-height: 1.35;
+  font-size: .76rem;
+  line-height: 1.32;
 }
 
 .small {
@@ -70,8 +70,8 @@ defineProps<{ article: NewspaperArticle }>()
 }
 
 .updates p {
-  font-size: .61rem;
-  line-height: 1.45;
+  font-size: .76rem;
+  line-height: 1.35;
 }
 
 </style>

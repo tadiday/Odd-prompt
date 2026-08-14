@@ -316,7 +316,7 @@
   top: 185px;
   left: 50%;
   display: grid;
-  width: 500px;
+  width: 600px;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   transform: translateX(-50%);
@@ -1343,7 +1343,7 @@ footer a {
 }
 
 .taped-action b {
-  font: normal .65rem 'Special Elite';
+  font: normal .75rem 'Special Elite';
 }
 
 .evidence-board>.home-header {
@@ -1594,6 +1594,38 @@ footer a {
   margin: 0;
 }
 
+.evidence-board .header-brand {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  justify-content: center;
+  margin: 0;
+  color: #251c14;
+  text-align: left;
+  transform: translate(-50%,-50%);
+}
+
+.evidence-board .header-brand .brand-hat {
+  font-size: 2.15rem;
+}
+
+.evidence-board .header-brand h1 {
+  color: #251c14;
+  font-size: 1.8rem;
+  white-space: nowrap;
+}
+
+.evidence-board .header-brand p {
+  color: #251c14;
+  font-size: .52rem;
+  white-space: nowrap;
+}
+
+.evidence-board .header-brand em {
+  color: #9d2c25;
+}
+
 .evidence-board > .case-heading {
   position: absolute;
   top: 95px;
@@ -1605,21 +1637,541 @@ footer a {
 
 .evidence-board > .operations {
   position: absolute;
-  top: 250px;
+  top: 135px;
   left: 50%;
-  width: 610px;
-  gap: 14px;
-  grid-template-columns: 1fr 1fr;
+  width: 650px;
+  height: auto;
+  min-height: 370px;
+  gap: 24px;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  align-items: stretch;
   transform: translateX(-50%);
+  padding: 34px 24px 30px;
+  isolation: isolate;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.evidence-board > .operations::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -31px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 5px;
+  background:
+    radial-gradient(ellipse at 14% 29%,#62411e30 0 7%,transparent 19%),
+    radial-gradient(circle at 83% 67%,#4e33171c 0 3%,transparent 13%),
+    repeating-linear-gradient(105deg,#fff0 0 22px,#f3dba008 23px 24px),
+    url('../assets/textures/aged-paper.png') center/cover,
+    linear-gradient(145deg,#c3a878 0%,#ad8d5c 55%,#9b794d 100%);
+  background-blend-mode: normal,normal,normal,multiply,normal;
+  clip-path: polygon(
+    0 31px,
+    2.4% 31px,
+    3.1% 30px,
+    3.7% 27px,
+    4.4% 18px,
+    5% 9px,
+    5.7% 4px,
+    6.5% 2px,
+    7.5% 1px,
+    33.5% 1px,
+    34.6% 2px,
+    35.4% 5px,
+    36% 10px,
+    36.7% 19px,
+    37.4% 27px,
+    38.1% 30px,
+    39% 31px,
+    100% 31px,
+    100% 100%,
+    0 100%
+  );
+  filter: drop-shadow(5px 8px 8px #170b0799);
+  box-shadow: inset 0 0 0 1px #5e4429,inset 0 0 22px #52371966;
+}
+
+.evidence-board > .operations::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 5px;
+  background: linear-gradient(90deg,transparent,#65482555 35% 65%,transparent);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.case-file-number {
+  position: absolute;
+  z-index: 4;
+  top: -24px;
+  left: 67px;
+  color: #302318;
+  font: .8rem 'Special Elite';
+  letter-spacing: .08em;
+  transform: rotate(-.7deg);
+  text-shadow: 0 1px #ead4a466;
+}
+
+.folder-sheet-title {
+  margin: 0 0 9px;
+  color: #4a3422;
+  font: bold .98rem 'Special Elite';
+  letter-spacing: .1em;
+  text-align: left;
+}
+
+.intake-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 13px;
+  padding-bottom: 7px;
+  border-bottom: 1px dashed #765f4099;
+  color: #6a4b31;
+  font: .76rem 'Special Elite';
+  letter-spacing: .055em;
 }
 
 .evidence-board .operation-note {
-  min-height: 210px;
-  padding: 15px 24px 18px;
+  width: 100%;
+  min-width: 0;
+  min-height: 305px;
+  padding: 20px 22px 19px;
+  border: 1px solid #75664e;
+  background-color: #e0d7bf;
+  background-image:
+    linear-gradient(90deg,#6e4b2518,transparent 8%,transparent 92%,#6e4b2514),
+    radial-gradient(circle at 88% 82%,#79542d12 0 5%,transparent 16%),
+    repeating-linear-gradient(0deg,transparent 0 25px,#8a806d26 26px),
+    url('../assets/textures/aged-paper.png');
+  background-blend-mode: normal,normal,normal,soft-light;
+  box-shadow: inset 0 0 11px #71502c20;
+  transform: rotate(-.35deg);
+}
+
+.evidence-board .join-note {
+  transform: rotate(.35deg);
+}
+
+.evidence-board .operation-note h3 {
+  align-self: flex-start;
+  margin: -4px 0 12px;
+  padding: 6px 12px 4px;
+  background: #171713;
+  color: #eee5d4;
+  font-size: .9rem;
+  letter-spacing: .08em;
+  text-align: left;
+  transform: rotate(-.5deg);
+  box-shadow: 1px 2px 3px #0006;
+}
+
+.evidence-board .join-note h3 {
+  transform: rotate(.5deg);
+}
+
+.evidence-board .operation-note label {
+  color: #30251b;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .045em;
+}
+
+.evidence-board .operation-note input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border-color: #332d25;
+  background: #191a16;
+  box-shadow: inset 0 1px 3px #0009;
+}
+
+.evidence-board .operation-note input::placeholder {
+  color: #c8bda8;
+  opacity: 1;
+}
+
+.evidence-board .case-dossier {
+  position: relative;
+  min-width: 0;
+  height: 305px;
+  min-height: 305px;
+  margin-top: 0;
+  padding: 20px;
+  border: 1px solid #75664e;
+  background-color: #e0d7bf;
+  background-image:
+    linear-gradient(90deg,#6e4b2518,transparent 8%,transparent 92%,#6e4b2514),
+    radial-gradient(circle at 12% 84%,#79542d12 0 5%,transparent 16%),
+    repeating-linear-gradient(0deg,transparent 0 25px,#8a806d26 26px),
+    url('../assets/textures/aged-paper.png');
+  background-position: center;
+  background-size: auto,auto,auto,cover;
+  background-blend-mode: normal,normal,normal,soft-light;
+  color: #251b13;
+  transform: translateY(-2px) rotate(-.55deg);
+  box-shadow: 2px 4px 7px #26140730,inset 0 0 11px #71502c20;
+}
+
+.dossier-paperclip {
+  position: absolute;
+  z-index: 3;
+  top: -13px;
+  right: 24px;
+  width: 11px;
+  height: 36px;
+  border: 2px solid #675f52;
+  border-radius: 7px;
+  transform: rotate(8deg);
+  box-shadow: inset 0 0 0 1px #c2b9a7,1px 1px 2px #25170c55;
+  opacity: .82;
+}
+
+.dossier-reference {
+  position: absolute;
+  top: 24px;
+  right: 18px;
+  color: #5a4634;
+  font: .7rem 'Special Elite';
+  letter-spacing: .055em;
+}
+
+.dossier-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 5px 9px 3px;
+  background: #171713;
+  color: #eee5d4;
+  font: .78rem 'Special Elite';
+  letter-spacing: .08em;
+}
+
+.dossier-photo {
+  position: relative;
+  width: 132px;
+  margin: 0 auto 9px;
+  padding: 8px 8px 25px;
+  border: 1px solid #71624b;
+  background: #d6c9aa;
+  transform: rotate(1.35deg);
+  box-shadow: 3px 5px 7px #24140955;
+}
+
+.dossier-annotation {
+  position: absolute;
+  z-index: 2;
+  top: 145px;
+  right: 8px;
+  color: #65362d;
+  font: italic .7rem Georgia,serif;
+  transform: rotate(-7deg);
+  opacity: .8;
+}
+
+.dossier-annotation i {
+  display: block;
+  margin: -2px 0 0 -8px;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.dossier-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.25;
+  object-fit: contain;
+  background: #6e3c2b;
+  filter: sepia(.15);
+}
+
+.dossier-photo strong {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  left: 8px;
+  color: #231b14;
+  font: 1.14rem 'Staatliches';
+  letter-spacing: .08em;
+  text-align: center;
+}
+
+.case-dossier > p {
+  margin: 0 0 8px;
+  font-size: .84rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.case-dossier dl {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  margin: 0;
+  border-top: 1px solid #79694f88;
+}
+
+.case-dossier dl div {
+  padding-top: 6px;
+  text-align: center;
+}
+
+.case-dossier dt {
+  color: #443426;
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.case-dossier dd {
+  margin: 3px 0 0;
+  color: #8d2a23;
+  font: .92rem 'Staatliches';
+  letter-spacing: .06em;
+}
+
+.room-form-area {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  padding-top: 0;
+}
+
+.room-tabs {
+  position: absolute;
+  z-index: 3;
+  top: -31px;
+  right: 24px;
+  left: calc(50% + 12px);
+  display: grid;
+  width: auto;
+  height: 31px;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  align-items: end;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.room-tabs button {
+  width: 100%;
+  height: 31px;
+  min-width: 0;
+  padding: 10px 10px 4px;
+  border: 0;
+  background:
+    repeating-linear-gradient(105deg,#fff0 0 22px,#d8bd7d0a 23px 24px),
+    url('../assets/textures/aged-paper.png') center/cover,
+    linear-gradient(#a2875e,#8f7047);
+  background-blend-mode: normal,multiply,normal;
+  color: #3b2e20;
+  clip-path: polygon(
+    0 100%,
+    6.2% 100%,
+    8% 97%,
+    9.5% 87%,
+    11.3% 58%,
+    12.8% 29%,
+    14.6% 13%,
+    16.7% 6%,
+    19.2% 3%,
+    85.9% 3%,
+    88.7% 6%,
+    90.8% 16%,
+    92.3% 32%,
+    94.1% 61%,
+    95.9% 87%,
+    97.7% 97%,
+    100% 100%
+  );
+  font: .76rem 'Special Elite';
+  letter-spacing: .055em;
+  cursor: pointer;
+  opacity: .9;
+  transition: filter .14s ease,opacity .14s ease,background .14s ease;
+  filter: drop-shadow(0 -1px 1px #28170c33);
+  box-shadow: inset 0 1px #6c5234,inset 1px 0 #6c523455,inset -1px 0 #6c523455,inset 0 -1px #60482f88;
+}
+
+.room-tabs button:first-child {
+  transform: translateY(1px) rotate(-.65deg);
+}
+
+.room-tabs button:last-child {
+  width: calc(100% + 4px);
+  margin-left: -5px;
+  transform: translate(-2px,-1px) rotate(.55deg);
+}
+
+.room-tabs button.active {
+  z-index: 4;
+  border-bottom: 0;
+  background:
+    radial-gradient(ellipse at 14% 29%,#62411e30 0 7%,transparent 19%),
+    radial-gradient(circle at 83% 67%,#4e33171c 0 3%,transparent 13%),
+    repeating-linear-gradient(105deg,#fff0 0 22px,#f3dba008 23px 24px),
+    url('../assets/textures/aged-paper.png'),
+    linear-gradient(145deg,#c3a878 0%,#ad8d5c 55%,#9b794d 100%);
+  background-size: 650px 401px,650px 401px,650px 401px,650px 401px,650px 401px;
+  background-blend-mode: normal,normal,normal,multiply,normal;
+  color: #241c14;
+  opacity: 1;
+  transform: translateY(2px);
+  filter: none;
+  box-shadow: inset 0 1px #e1cc9b,inset 1px 0 #80633c44,inset -1px 0 #80633c44;
+}
+
+.room-tabs button:first-child.active {
+  background-position: -337px 0;
+  transform: translateY(3px) rotate(-.65deg);
+}
+
+.room-tabs button:last-child.active {
+  background-position: -481px 0;
+  transform: translate(-2px,1px) rotate(.55deg);
+}
+
+.room-tabs button:focus-visible {
+  outline: 2px solid #8f2a24;
+  outline-offset: 2px;
+}
+
+.room-form-area .operation-note {
+  flex: none;
+  height: 305px;
+  min-height: 305px;
+  padding: 22px 24px 21px;
+  transform: translateY(5px) rotate(.35deg);
+  box-shadow: -2px 4px 7px #2614072b,inset 0 0 11px #71502c20;
+}
+
+.room-form-area .operation-note::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  bottom: -7px;
+  left: 34px;
+  width: 48px;
+  height: 14px;
+  background: linear-gradient(90deg,#b89b66c7,#dac38dd9 18%,#c2a66fd4 82%,#9d8053bd);
+  clip-path: polygon(3% 8%,98% 0,94% 92%,4% 100%);
+  transform: rotate(-3deg);
+  box-shadow: 0 1px 2px #2c190d44;
+  opacity: .8;
+  pointer-events: none;
+}
+
+.room-form-area .operation-note label {
+  margin-top: 0;
+}
+
+.room-form-area .operation-note input {
+  margin-bottom: 10px;
+}
+
+.room-form-area .operation-note > button {
+  flex: none;
+  margin-top: 8px;
+}
+
+.create-confidential {
+  position: absolute;
+  right: 24px;
+  bottom: 38px;
+  padding: 6px 11px 3px;
+  border: 2px solid #8d2b25a8;
+  color: #8d2b25c7;
+  font: .82rem 'Staatliches';
+  letter-spacing: .12em;
+  transform: rotate(-5deg) skewX(-1deg);
+  opacity: .68;
+  filter: contrast(.88);
+  text-shadow: 1px 0 #8d2b2530,-1px 1px #8d2b2524;
+  pointer-events: none;
+}
+
+.paper-swap-enter-active,
+.paper-swap-leave-active {
+  transition: opacity .12s ease,transform .12s ease;
+}
+
+.paper-swap-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.paper-swap-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
+.evidence-board .operation-note > button {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.evidence-board .operation-note h3,
+.evidence-board .chosen-agent,
+.evidence-board .operation-note label {
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width:750px) {
+  .evidence-board > .operations {
+    top: 105px;
+    width:650px;
+    height: auto;
+    min-height: 0;
+    grid-template-columns: minmax(0,1fr);
+    gap: 24px;
+  }
+
+  .evidence-board > .operations::after {
+    display: none;
+  }
+
+  .evidence-board .operation-note {
+    min-height: 210px;
+  }
+
+  .evidence-board .case-dossier {
+    height: auto;
+    min-height: 160px;
+    margin-top: 0;
+    padding: 15px 20px;
+  }
+
+  .dossier-photo {
+    float: left;
+    width: 112px;
+    margin: 0 18px 4px 0;
+  }
+
+  .case-dossier > p {
+    padding-top: 18px;
+    text-align: left;
+  }
+
+  .room-form-area .operation-note {
+    height: auto;
+    min-height: 0;
+  }
+
+  .evidence-board > .how-to-note {
+    top: 72%;
+  }
 }
 
 .evidence-board > .how-to-note {
-  top: 57%;
+  top: 60%;
   right: auto;
   bottom: auto;
   left: 53%;

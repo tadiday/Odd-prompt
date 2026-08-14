@@ -52,8 +52,8 @@ const cardStyle = computed(() => ({
 
 .evidence-card strong {
   display: block;
-  margin-top: 5px;
-  font: 1rem 'Staatliches';
+  margin-top: 6px;
+  font: 1.14rem 'Staatliches';
   letter-spacing: .05em;
 }
 
@@ -65,7 +65,7 @@ const cardStyle = computed(() => ({
   padding: 2px;
   background: #9f2923;
   color: #fff;
-  font: 8px 'Special Elite';
+  font: 11px 'Special Elite';
   letter-spacing: .08em;
 }
 
@@ -88,7 +88,7 @@ const cardStyle = computed(() => ({
   border: 1px solid #8b632f;
   background: #d0b263;
   color: #4a2d18;
-  font: bold .5rem 'Special Elite';
+  font: bold .7rem 'Special Elite';
   transform: rotate(7deg);
   box-shadow: 1px 2px 3px #0007;
 }

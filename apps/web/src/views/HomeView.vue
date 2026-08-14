@@ -8,6 +8,13 @@
         <div class="header-left">
           <button class="language-button">◎ &nbsp; EN⌄</button>
         </div>
+        <div class="header-brand brand" aria-label="The Odd One">
+          <span class="brand-hat" aria-hidden="true">🎩</span>
+          <div>
+            <h1>THE <b>ODD ONE</b></h1>
+            <p>THE PARTY GAME OF <em>HIDDEN IDENTITIES</em></p>
+          </div>
+        </div>
         <div class="header-tools">
           <button aria-label="Help">?</button>
           <button aria-label="Music">♫</button>
@@ -15,19 +22,6 @@
         </div>
       </header>
       <EvidenceStrings :connections="evidenceConnections" />
-
-      <div class="case-heading">
-        <EvidencePin id="hero-left" position="top-left" />
-        <EvidencePin id="hero-right" position="top-right" />
-        <span class="stamp">CONFIDENTIAL</span>
-        <div class="hero-brand brand">
-          <span class="brand-hat">🎩</span>
-          <div>
-            <h1>ODD <b>PROMPT</b></h1>
-            <p>THE PARTY GAME OF <em>HIDDEN IDENTITIES</em></p>
-          </div>
-        </div>
-      </div>
 
       <EvidenceCard
         v-for="(suspect, index) in suspects"
@@ -38,30 +32,72 @@
       />
 
       <section class="operations">
-        <article class="operation-note create-note">
-          <EvidencePin id="create-left" position="top-left" />
-          <EvidencePin id="create-right" position="top-right" />
-          <h3>★ &nbsp; CREATE ROOM &nbsp; ★</h3>
-          <div class="chosen-agent">
+        <span class="case-file-number">CASE FILE NO. 95</span>
+        <aside class="case-dossier">
+          <i class="dossier-paperclip" aria-hidden="true"></i>
+          <h2 class="folder-sheet-title">EVIDENCE SHEET</h2>
+          <small class="dossier-reference">REF: OD-0095</small>
+          <span class="dossier-eyebrow">SELECTED SUSPECT</span>
+          <div class="dossier-photo">
             <img :src="avatars[selectedAvatar].src" alt="" />
-            <span>
-              SELECTED SUSPECT
-              <b>{{ suspectName(avatars[selectedAvatar].name) }}</b>
-            </span>
+            <strong>{{ suspectName(avatars[selectedAvatar].name) }}</strong>
           </div>
-          <label for="host-name">AGENT NAME</label>
-          <input id="host-name" v-model="hostName" maxlength="20" placeholder="ENTER YOUR NAME" @keyup.enter="createRoom" />
-          <button @click="createRoom"><span>♟</span> CREATE ROOM <b>→</b></button>
-        </article>
-        <article class="operation-note join-note">
-          <EvidencePin id="join-left" position="top-left" /><EvidencePin id="join-right" position="top-right" />
-          <h3>★ &nbsp; JOIN ROOM &nbsp; ★</h3>
-          <label for="player-name">AGENT NAME</label>
-          <input id="player-name" v-model="playerName" maxlength="20" placeholder="ENTER YOUR NAME" />
-          <label for="room-code">SECRET CODE</label>
-          <input id="room-code" v-model="roomCode" maxlength="6" placeholder="ENTER ROOM CODE" @keyup.enter="joinRoom" />
-          <button @click="joinRoom">JOIN ROOM <b>→</b></button>
-        </article>
+          <span class="dossier-annotation" aria-hidden="true">check alibi?<i>↙</i></span>
+          <p>Primary agent assigned to this investigation.</p>
+        </aside>
+
+        <div class="room-form-area">
+          <div class="room-tabs" role="tablist" aria-label="Room action">
+            <button
+              id="create-room-tab"
+              type="button"
+              role="tab"
+              :aria-selected="activeRoomForm === 'create'"
+              :class="{ active: activeRoomForm === 'create' }"
+              @click="activeRoomForm = 'create'"
+            >CREATE ROOM</button>
+            <button
+              id="join-room-tab"
+              type="button"
+              role="tab"
+              :aria-selected="activeRoomForm === 'join'"
+              :class="{ active: activeRoomForm === 'join' }"
+              @click="activeRoomForm = 'join'"
+            >JOIN ROOM</button>
+          </div>
+
+          <Transition name="paper-swap" mode="out-in">
+            <article
+              v-if="activeRoomForm === 'create'"
+              key="create"
+              class="operation-note create-note"
+              role="tabpanel"
+              aria-labelledby="create-room-tab"
+            >
+              <h2 class="folder-sheet-title">CREATE ROOM</h2>
+              <div class="intake-meta"><span>CASE: ODD ONE</span><span>DATE: 08/14/26</span></div>
+              <label for="host-name">AGENT NAME</label>
+              <input id="host-name" v-model="hostName" maxlength="20" placeholder="ENTER YOUR NAME" @keyup.enter="createRoom" />
+              <span class="create-confidential" aria-hidden="true">CONFIDENTIAL</span>
+              <button @click="createRoom"><span>♟</span> CREATE ROOM <b>→</b></button>
+            </article>
+            <article
+              v-else
+              key="join"
+              class="operation-note join-note"
+              role="tabpanel"
+              aria-labelledby="join-room-tab"
+            >
+              <h2 class="folder-sheet-title">JOIN ROOM</h2>
+              <div class="intake-meta"><span>CASE: ODD ONE</span><span>DATE: 08/14/26</span></div>
+              <label for="player-name">AGENT NAME</label>
+              <input id="player-name" v-model="playerName" maxlength="20" placeholder="ENTER YOUR NAME" />
+              <label for="room-code">SECRET CODE</label>
+              <input id="room-code" v-model="roomCode" maxlength="6" placeholder="ENTER ROOM CODE" @keyup.enter="joinRoom" />
+              <button @click="joinRoom">JOIN ROOM <b>→</b></button>
+            </article>
+          </Transition>
+        </div>
       </section>
 
       <aside
@@ -115,6 +151,7 @@ const hostName = ref('')
 const playerName = ref('')
 const roomCode = ref('')
 const showGuide = ref(false)
+const activeRoomForm = ref<'create' | 'join'>('create')
 const boardViewport = ref<HTMLElement | null>(null)
 const boardScale = ref(1)
 const BOARD_WIDTH = 1360

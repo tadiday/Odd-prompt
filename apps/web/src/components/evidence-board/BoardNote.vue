@@ -19,10 +19,10 @@ defineProps<{ note: BoardDecoration }>()
   white-space: pre-line;
   padding: 12px;
   background: #a98b5f;
-  color: #2e2117;
+  color: #21170f;
   box-shadow: 2px 4px 8px #0008;
-  font-size: .76rem;
-  line-height: 1.5;
+  font-size: .84rem;
+  line-height: 1.42;
 }
 
 .board-decoration b,.board-decoration span {
@@ -36,12 +36,12 @@ defineProps<{ note: BoardDecoration }>()
 
 .status {
   background: #b29a74;
-  font-size: .65rem;
+  font-size: .72rem;
 }
 
 .status b {
   color: #3d2c1e;
-  font-size: .65rem;
+  font-size: .72rem;
 }
 
 .status span {
@@ -57,7 +57,7 @@ defineProps<{ note: BoardDecoration }>()
   width: 320px;
   background: #b9a27e;
   text-align: center;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .taped {
