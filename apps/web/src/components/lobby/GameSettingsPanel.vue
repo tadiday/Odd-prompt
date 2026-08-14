@@ -104,14 +104,12 @@ function onTextChange(key: RoomSetting, event: Event) {
 
 .settings-heading h3 {
   margin: 0;
-
   font-size: 1rem;
   font-weight: 900;
 }
 
 .settings-heading p {
   margin: 6px 0 0;
-
   color: #666 !important;
   font-size: 0.78rem;
 }
@@ -123,11 +121,9 @@ function onTextChange(key: RoomSetting, event: Event) {
 
 .setting-row {
   min-height: 65px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   border-bottom: 3px solid #e5e5e5;
 }
 
@@ -143,21 +139,14 @@ function onTextChange(key: RoomSetting, event: Event) {
 .setting-control input,
 .setting-control select {
   width: 135px;
-
   padding: 9px 11px;
-
   box-sizing: border-box;
-
   border: 3px solid #aaa;
   border-radius: 8px;
-
   background: #fff;
   color: #111;
-
   font-size: 0.8rem;
-
   outline: none;
-
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;

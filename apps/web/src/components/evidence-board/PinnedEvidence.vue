@@ -20,7 +20,18 @@ const positionStyle = computed(() => ({
 </script>
 
 <style scoped>
-.pinned-evidence { position: absolute; z-index: 2; }
-.evidence-content { position: relative; }
-.evidence-content :deep(> *) { position: relative; inset: auto; transform: none; }
+.pinned-evidence {
+  position: absolute;
+  z-index: 2;
+}
+
+.evidence-content {
+  position: relative;
+}
+
+.evidence-content :deep(> *) {
+  position: relative;
+  inset: auto;
+  transform: none;
+}
 </style>

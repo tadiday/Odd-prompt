@@ -183,45 +183,223 @@ watch(
   box-shadow: none;
 }
 
-.top-row { display: flex; align-items: center; justify-content: space-between; }
-.top-row > p { font-size: 0.95rem; font-weight: 800; }
-.timers { display: flex; gap: 14px; }
-.timers > div { min-width: 128px; padding: 11px 14px; border: 3px solid #111; border-radius: 11px; text-align: center; }
-.timers .red { border-color: var(--red); }
-.timers .muted { opacity: 0.5; }
-.timers small { display: block; font-size: 0.65rem; font-weight: 900; line-height: 1.1; }
-.timers strong { display: block; margin-top: 5px; font-size: 1.2rem; }
-.phase-shell > h1 { margin: 12px 0 0; text-align: center; font-size: 1.65rem; }
-.prompt-kind { margin: 4px 0 18px; text-align: center; font-size: 0.82rem; font-weight: 700; }
-.phase-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(330px, 0.75fr); gap: 26px; }
-.answers-panel > h2, .vote-panel > h2 { margin: 0 0 12px; font-size: 0.88rem; }
-.answer-list { display: grid; gap: 10px; }
-.answer-list article { display: grid; grid-template-columns: 44px 190px 1fr; align-items: center; min-height: 58px; padding: 8px 13px; border: 3px solid #ddd; border-radius: 9px; }
-.avatar { display: grid; width: 36px; height: 36px; place-items: center; border: 3px solid #111; border-radius: 50%; background: #f5f5f5; font-size: 0.88rem; font-weight: 900; }
-.answer-list strong { font-size: 0.95rem; }
-.answer-list em { color: var(--red); font-size: 0.78rem; font-style: normal; }
-.answer-list p { margin: 0; font-size: 1rem; }
-.vote-panel { padding: 19px; border: 3px solid #111; border-radius: 12px; }
-.vote-panel > h2 { text-align: center; font-size: 0.95rem; }
-.vote-panel > p { margin: 0 0 13px; text-align: center; font-size: 0.78rem; }
-.vote-panel > button:not(.submit):not(.skip) { display: flex; width: 100%; align-items: center; gap: 11px; padding: 8px; border: 0; background: #fff; cursor: pointer; }
-.vote-panel button strong { font-size: 0.92rem; }
-.vote-panel button span { margin-left: auto; color: var(--red); font-size: 0.68rem; font-weight: 900; text-transform: uppercase; }
-.vote-panel button i { width: 18px; height: 18px; margin-left: auto; border: 2px solid #111; border-radius: 50%; }
-.vote-panel button span + i { margin-left: 0; }
-.vote-panel button.selected i { border: 5px solid var(--red); }
-.vote-panel button.submitted { background: #fff7f7 !important; }
-.submit, .skip { width: 100%; margin-top: 11px; padding: 13px; border: 1px solid #111; border-radius: 8px; font-size: 0.82rem; font-weight: 900; }
-.submit { background: var(--red); color: #fff; }
-.skip { background: #fff; }
-.submit:disabled, .skip:disabled { opacity: 0.45; }
-.empty-state { padding: 70px; text-align: center; color: #777; font-size: 1rem; }
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.top-row > p {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.timers {
+  display: flex;
+  gap: 14px;
+}
+
+.timers > div {
+  min-width: 128px;
+  padding: 11px 14px;
+  border: 3px solid #111;
+  border-radius: 11px;
+  text-align: center;
+}
+
+.timers .red {
+  border-color: var(--red);
+}
+
+.timers .muted {
+  opacity: 0.5;
+}
+
+.timers small {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.timers strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.2rem;
+}
+
+.phase-shell > h1 {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 1.65rem;
+}
+
+.prompt-kind {
+  margin: 4px 0 18px;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.phase-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(330px, 0.75fr);
+  gap: 26px;
+}
+
+.answers-panel > h2, .vote-panel > h2 {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+}
+
+.answer-list {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-list article {
+  display: grid;
+  grid-template-columns: 44px 190px 1fr;
+  align-items: center;
+  min-height: 58px;
+  padding: 8px 13px;
+  border: 3px solid #ddd;
+  border-radius: 9px;
+}
+
+.avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 3px solid #111;
+  border-radius: 50%;
+  background: #f5f5f5;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.answer-list strong {
+  font-size: 0.95rem;
+}
+
+.answer-list em {
+  color: var(--red);
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.answer-list p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.vote-panel {
+  padding: 19px;
+  border: 3px solid #111;
+  border-radius: 12px;
+}
+
+.vote-panel > h2 {
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.vote-panel > p {
+  margin: 0 0 13px;
+  text-align: center;
+  font-size: 0.78rem;
+}
+
+.vote-panel > button:not(.submit):not(.skip) {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 11px;
+  padding: 8px;
+  border: 0;
+  background: #fff;
+  cursor: pointer;
+}
+
+.vote-panel button strong {
+  font-size: 0.92rem;
+}
+
+.vote-panel button span {
+  margin-left: auto;
+  color: var(--red);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.vote-panel button i {
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  border: 2px solid #111;
+  border-radius: 50%;
+}
+
+.vote-panel button span + i {
+  margin-left: 0;
+}
+
+.vote-panel button.selected i {
+  border: 5px solid var(--red);
+}
+
+.vote-panel button.submitted {
+  background: #fff7f7 !important;
+}
+
+.submit, .skip {
+  width: 100%;
+  margin-top: 11px;
+  padding: 13px;
+  border: 1px solid #111;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.submit {
+  background: var(--red);
+  color: #fff;
+}
+
+.skip {
+  background: #fff;
+}
+
+.submit:disabled, .skip:disabled {
+  opacity: 0.45;
+}
+
+.empty-state {
+  padding: 70px;
+  text-align: center;
+  color: #777;
+  font-size: 1rem;
+}
 
 @media (max-width: 760px) {
-  .phase-shell { width: 100%; padding: 26px 15px 22px; overflow: auto; }
-  .top-row { align-items: flex-start; gap: 10px; }
-  .phase-layout { grid-template-columns: 1fr; }
-  .answer-list article { grid-template-columns: 40px 115px 1fr; }
+  .phase-shell {
+    width: 100%;
+    padding: 26px 15px 22px;
+    overflow: auto;
+  }
+  .top-row {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .phase-layout {
+    grid-template-columns: 1fr;
+  }
+  .answer-list article {
+    grid-template-columns: 40px 115px 1fr;
+  }
 }
 </style>
 <style scoped src="../../styles/game-phases.css"></style>

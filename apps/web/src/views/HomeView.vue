@@ -1,33 +1,54 @@
 <template>
   <main class="home-page">
-    <EvidenceBoard>
+    <div ref="boardViewport" class="board-viewport" :style="boardViewportStyle">
+      <EvidenceBoard>
       <header class="home-header">
-        <EvidencePin id="header-left" position="top-left" /><EvidencePin id="header-right" position="top-right" />
+        <EvidencePin id="header-left" position="top-left" />
+        <EvidencePin id="header-right" position="top-right" />
         <div class="header-left">
           <button class="language-button">◎ &nbsp; EN⌄</button>
         </div>
         <div class="header-tools">
-          <button aria-label="Help">?</button><button aria-label="Music">♫</button><button aria-label="Sound">◕</button>
+          <button aria-label="Help">?</button>
+          <button aria-label="Music">♫</button>
+          <button aria-label="Sound">◕</button>
         </div>
       </header>
       <EvidenceStrings :connections="evidenceConnections" />
 
       <div class="case-heading">
-        <EvidencePin id="hero-left" position="top-left" /><EvidencePin id="hero-right" position="top-right" />
+        <EvidencePin id="hero-left" position="top-left" />
+        <EvidencePin id="hero-right" position="top-right" />
         <span class="stamp">CONFIDENTIAL</span>
         <div class="hero-brand brand">
           <span class="brand-hat">🎩</span>
-          <div><h1>ODD <b>PROMPT</b></h1><p>THE PARTY GAME OF <em>HIDDEN IDENTITIES</em></p></div>
+          <div>
+            <h1>ODD <b>PROMPT</b></h1>
+            <p>THE PARTY GAME OF <em>HIDDEN IDENTITIES</em></p>
+          </div>
         </div>
       </div>
 
-      <EvidenceCard v-for="(suspect, index) in suspects" :key="suspect.id" :suspect="suspect" :selected="selectedAvatar === index" @select="selectedAvatar = index" />
+      <EvidenceCard
+        v-for="(suspect, index) in suspects"
+        :key="suspect.id"
+        :suspect="suspect"
+        :selected="selectedAvatar === index"
+        @select="selectedAvatar = index"
+      />
 
       <section class="operations">
         <article class="operation-note create-note">
-          <EvidencePin id="create-left" position="top-left" /><EvidencePin id="create-right" position="top-right" />
+          <EvidencePin id="create-left" position="top-left" />
+          <EvidencePin id="create-right" position="top-right" />
           <h3>★ &nbsp; CREATE ROOM &nbsp; ★</h3>
-          <div class="chosen-agent"><img :src="avatars[selectedAvatar].src" alt="" /><span>SELECTED SUSPECT<b>{{ suspectName(avatars[selectedAvatar].name) }}</b></span></div>
+          <div class="chosen-agent">
+            <img :src="avatars[selectedAvatar].src" alt="" />
+            <span>
+              SELECTED SUSPECT
+              <b>{{ suspectName(avatars[selectedAvatar].name) }}</b>
+            </span>
+          </div>
           <label for="host-name">AGENT NAME</label>
           <input id="host-name" v-model="hostName" maxlength="20" placeholder="ENTER YOUR NAME" @keyup.enter="createRoom" />
           <button @click="createRoom"><span>♟</span> CREATE ROOM <b>→</b></button>
@@ -43,7 +64,18 @@
         </article>
       </section>
 
-      <aside class="how-to-note taped-action" role="button" tabindex="0" @click="showGuide = !showGuide" @keydown.enter="showGuide = !showGuide" @keydown.space.prevent="showGuide = !showGuide"><i aria-hidden="true"></i><span>HOW TO PLAY</span><b>Open the case briefing →</b></aside>
+      <aside
+        class="how-to-note taped-action"
+        role="button"
+        tabindex="0"
+        @click="toggleGuide"
+        @keydown.enter="toggleGuide"
+        @keydown.space.prevent="toggleGuide"
+      >
+        <i aria-hidden="true"></i>
+        <span>HOW TO PLAY</span>
+        <b>Open the case briefing →</b>
+      </aside>
       <aside v-if="showGuide" class="guide-note">
         <button aria-label="Close guide" @click="showGuide = false">×</button>
         <h3>HOW TO PLAY</h3>
@@ -54,14 +86,15 @@
       <BoardNote v-for="note in boardDecorations" :key="note.id" :note="note" />
       <NewspaperClipping v-for="article in newspaperClippings" :key="article.id" :article="article" />
       <div v-if="gameStore.errorMessage" class="alert" role="alert">{{ gameStore.errorMessage }}</div>
-    </EvidenceBoard>
+      </EvidenceBoard>
+    </div>
 
     <footer><nav><a href="#">PRIVACY</a><a href="#">CONTACT</a></nav></footer>
   </main>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/gameStore'
 import { avatars } from '../data/avatars'
@@ -82,22 +115,77 @@ const hostName = ref('')
 const playerName = ref('')
 const roomCode = ref('')
 const showGuide = ref(false)
+const boardViewport = ref<HTMLElement | null>(null)
+const boardScale = ref(1)
+const BOARD_WIDTH = 1360
+const BOARD_HEIGHT = 920
+const VIEWPORT_GUTTER = 36
+let boardResizeObserver: ResizeObserver | null = null
+
+const boardViewportStyle = computed(() => ({
+  '--board-scale': boardScale.value,
+  width: `${BOARD_WIDTH * boardScale.value}px`,
+  height: `${BOARD_HEIGHT * boardScale.value}px`,
+}))
+
+function fitBoardToViewport() {
+  const availableWidth = Math.max(0, window.innerWidth - VIEWPORT_GUTTER)
+  const availableHeight = Math.max(0, window.innerHeight - VIEWPORT_GUTTER)
+  boardScale.value = Math.min(1, availableWidth / BOARD_WIDTH, availableHeight / BOARD_HEIGHT)
+}
+
+onMounted(async () => {
+  await nextTick()
+  fitBoardToViewport()
+  boardResizeObserver = new ResizeObserver(fitBoardToViewport)
+  if (boardViewport.value?.parentElement) boardResizeObserver.observe(boardViewport.value.parentElement)
+  window.addEventListener('resize', fitBoardToViewport)
+})
+
+onBeforeUnmount(() => {
+  boardResizeObserver?.disconnect()
+  window.removeEventListener('resize', fitBoardToViewport)
+})
+
 function suspectName(name: string) {
   return name.replace(/^Cool /, '').toUpperCase()
 }
 
-watch(() => gameStore.roomCode, code => { if (code) router.push(`/lobby/${code}`) })
+watch(
+  () => gameStore.roomCode,
+  (code) => {
+    if (code) router.push(`/lobby/${code}`)
+  },
+)
+
+function toggleGuide() {
+  showGuide.value = !showGuide.value
+}
 
 function createRoom() {
-  if (!hostName.value.trim()) return void (gameStore.errorMessage = 'Enter your agent name')
-  gameStore.createRoom(hostName.value.trim(), avatars[selectedAvatar.value].id)
+  const name = hostName.value.trim()
+  if (!name) {
+    gameStore.errorMessage = 'Enter your agent name'
+    return
+  }
+
+  gameStore.createRoom(name, avatars[selectedAvatar.value].id)
 }
 
 function joinRoom() {
-  if (!playerName.value.trim()) return void (gameStore.errorMessage = 'Enter your agent name')
+  const name = playerName.value.trim()
+  if (!name) {
+    gameStore.errorMessage = 'Enter your agent name'
+    return
+  }
+
   const code = roomCode.value.trim().toUpperCase()
-  if (!/^[A-Z0-9]{6}$/.test(code)) return void (gameStore.errorMessage = 'Room codes must be 6 letters or numbers')
-  gameStore.joinRoom(code, playerName.value.trim(), avatars[selectedAvatar.value].id)
+  if (!/^[A-Z0-9]{6}$/.test(code)) {
+    gameStore.errorMessage = 'Room codes must be 6 letters or numbers'
+    return
+  }
+
+  gameStore.joinRoom(code, name, avatars[selectedAvatar.value].id)
 }
 </script>
 

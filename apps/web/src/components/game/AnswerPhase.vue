@@ -89,7 +89,9 @@ watch(
   box-shadow: none;
 }
 
-.phase-intro { text-align: center; }
+.phase-intro {
+  text-align: center;
+}
 
 .private-badge {
   display: inline-block;
@@ -101,8 +103,15 @@ watch(
   font-weight: 900;
 }
 
-.phase-intro h1 { margin: 18px 0 5px; font-size: 1.2rem; }
-.phase-intro p { margin: 0 0 24px; font-size: 0.95rem; }
+.phase-intro h1 {
+  margin: 18px 0 5px;
+  font-size: 1.2rem;
+}
+
+.phase-intro p {
+  margin: 0 0 24px;
+  font-size: 0.95rem;
+}
 
 .timer-card {
   position: absolute;
@@ -115,8 +124,15 @@ watch(
   text-align: center;
 }
 
-.timer-card small { display: block; font-size: 0.72rem; font-weight: 900; }
-.timer-card strong { font-size: 1.4rem; }
+.timer-card small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.timer-card strong {
+  font-size: 1.4rem;
+}
 
 .answer-card {
   max-width: 820px;
@@ -135,7 +151,9 @@ watch(
   font-size: 1.35rem;
 }
 
-.textarea-wrap { position: relative; }
+.textarea-wrap {
+  position: relative;
+}
 
 .textarea-wrap textarea {
   display: block;
@@ -158,7 +176,12 @@ watch(
   font-size: 0.82rem;
 }
 
-.auto-submit { margin: 20px 0 14px; text-align: center; font-size: 0.85rem; font-weight: 700; }
+.auto-submit {
+  margin: 20px 0 14px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
 
 .primary-button {
   display: block;
@@ -175,16 +198,38 @@ watch(
   box-shadow: 3px 3px #111;
 }
 
-.primary-button:disabled { opacity: 0.55; }
-.waiting { padding: 95px; text-align: center; color: #777; font-size: 1rem; }
+.primary-button:disabled {
+  opacity: 0.55;
+}
 
+.waiting {
+  padding: 95px;
+  text-align: center;
+  color: #777;
+  font-size: 1rem;
+}
 
 @media (max-width: 700px) {
-  .phase-shell { width: 100%; padding: 28px 16px 22px; overflow: auto; }
-  .timer-card { position: static; width: max-content; margin: 0 auto 18px; }
-  .phase-intro p { margin-bottom: 14px; }
-  .answer-card h2 { font-size: 1rem; }
-  .textarea-wrap textarea { height: 150px; font-size: 0.9rem; }
+  .phase-shell {
+    width: 100%;
+    padding: 28px 16px 22px;
+    overflow: auto;
+  }
+  .timer-card {
+    position: static;
+    width: max-content;
+    margin: 0 auto 18px;
+  }
+  .phase-intro p {
+    margin-bottom: 14px;
+  }
+  .answer-card h2 {
+    font-size: 1rem;
+  }
+  .textarea-wrap textarea {
+    height: 150px;
+    font-size: 0.9rem;
+  }
 }
 </style>
 <style scoped src="../../styles/game-phases.css"></style>

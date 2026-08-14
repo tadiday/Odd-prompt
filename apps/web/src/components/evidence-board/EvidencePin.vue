@@ -24,6 +24,14 @@ withDefaults(defineProps<{
   box-shadow: 1px 3px 3px #0008;
   transform: translateX(-50%);
 }
-.top-left { left: 18px; }
-.top-right { right: 18px; left: auto; transform: none; }
+
+.top-left {
+  left: 18px;
+}
+
+.top-right {
+  right: 18px;
+  left: auto;
+  transform: none;
+}
 </style>

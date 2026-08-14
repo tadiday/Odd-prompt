@@ -64,35 +64,28 @@ function getPlayer(playerId: string) {
   min-height: 0;
   margin: 0 auto;
   padding: 28px;
-
   box-sizing: border-box;
-
   background: transparent;
   color: #111;
-
   border: 0;
   border-radius: 0;
-
   box-shadow: none;
 }
 
 .phase-header {
   padding-bottom: 20px;
   margin-bottom: 24px;
-
   border-bottom: 3px solid #111;
 }
 
 .phase-header h1 {
   margin: 4px 0 0;
-
   font-size: 2.5rem;
   font-weight: 900;
 }
 
 .eyebrow {
   color: #ef1823;
-
   font-size: 0.75rem;
   font-weight: 900;
   letter-spacing: 0.15em;
@@ -106,12 +99,9 @@ function getPlayer(playerId: string) {
 
 .answer-card {
   padding: 18px;
-
   background: #fff;
-
   border: 3px solid #111;
   border-radius: 16px;
-
   box-shadow: 4px 4px 0 #111;
 }
 
@@ -119,23 +109,18 @@ function getPlayer(playerId: string) {
   display: flex;
   align-items: center;
   gap: 10px;
-
   margin-bottom: 14px;
 }
 
 .avatar {
   width: 36px;
   height: 36px;
-
   display: grid;
   place-items: center;
-
   background: #ef1823;
   color: #fff;
-
   border: 3px solid #111;
   border-radius: 50%;
-
   font-weight: 900;
 }
 
@@ -145,18 +130,14 @@ function getPlayer(playerId: string) {
 
 .answer-card p {
   margin: 0;
-
   color: #111;
-
   font-size: 1.1rem;
   line-height: 1.5;
-
   white-space: pre-wrap;
 }
 
 .waiting {
   padding: 40px;
-
   color: #777;
   text-align: center;
   font-weight: 700;
@@ -166,11 +147,9 @@ function getPlayer(playerId: string) {
   .reveal-phase {
     padding: 18px;
   }
-
   .answer-grid {
     grid-template-columns: 1fr;
   }
-
   .phase-header h1 {
     font-size: 2rem;
   }

@@ -1,7 +1,18 @@
-import { defineStore } from 'pinia';
-import { ref, computed, watch } from 'vue';
-import { WS_EVENT, Room, Player, ErrorPayload, RoomOptions, PromptAssignment, Answer, RoundPrompts, RoomSetting, VotingResults } from '@odd-prompt/shared';
-import { socketService } from '../services/socketClient';
+import { defineStore } from 'pinia'
+import { computed, ref, watch } from 'vue'
+import {
+  WS_EVENT,
+  type Answer,
+  type ErrorPayload,
+  type Player,
+  type PromptAssignment,
+  type Room,
+  type RoomOptions,
+  type RoomSetting,
+  type RoundPrompts,
+  type VotingResults,
+} from '@odd-prompt/shared'
+import { socketService } from '../services/socketClient'
 
 export const useGameStore = defineStore('game', () => {
   const currentRoom = ref<Room | null>(null);
@@ -87,17 +98,7 @@ export const useGameStore = defineStore('game', () => {
     submittedVote.value = payload.targetPlayerId;
   });
 
-  socketService.on(WS_EVENT.votingResults, (payload: {
-    roomCode: string;
-    tally: Array<{ playerId: string; count: number }>;
-    winnerId: string | null;
-    tiedPlayerIds: string[];
-    totalVotes: number;
-    skipVotes: number;
-    winningTeam?: 'imposter' | 'civilian';
-    revealedRoles?: Array<{ playerId: string; role: 'imposter' | 'civilian' }>;
-    prompts?: RoundPrompts;
-  }) => {
+  socketService.on(WS_EVENT.votingResults, (payload: VotingResults) => {
     votingResults.value = payload;
     revealedPrompts.value = payload.prompts ?? revealedPrompts.value;
     if (currentRoom.value) {

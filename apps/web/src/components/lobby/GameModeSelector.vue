@@ -67,26 +67,18 @@ const selectedMode = computed(() => props.selected ?? '')
 
 .mode-tile {
   position: relative;
-
   min-height: 225px;
-
   padding: 28px 20px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   border: 1.5px solid #d8d8d8;
   border-radius: 13px;
-
   background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%);
   color: #111;
-
   text-align: center;
-
   cursor: pointer;
-
   transition:
     border-color 0.15s ease,
     transform 0.15s ease,
@@ -118,7 +110,6 @@ const selectedMode = computed(() => props.selected ?? '')
 
 .mode-icon {
   margin-bottom: 18px;
-
   font-size: 3rem;
   line-height: 1;
 }
@@ -130,32 +121,23 @@ const selectedMode = computed(() => props.selected ?? '')
 
 .mode-tile small {
   max-width: 190px;
-
   margin-top: 8px;
-
   color: #333 !important;
-
   font-size: 0.8rem;
   line-height: 1.5;
 }
 
 .selected-check {
   position: absolute;
-
   top: 14px;
   right: 14px;
-
   width: 25px;
   height: 25px;
-
   display: grid;
   place-items: center;
-
   border-radius: 50%;
-
   background: #ff1022;
   color: #fff !important;
-
   font-size: 0.8rem;
   font-weight: 900;
 }
@@ -178,7 +160,6 @@ const selectedMode = computed(() => props.selected ?? '')
   .modes-grid {
     grid-template-columns: 1fr;
   }
-
   .mode-tile {
     min-height: 210px;
   }

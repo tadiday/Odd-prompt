@@ -1,6 +1,77 @@
-<template><PinnedEvidence :id="article.id" :position="article" :pins="article.pins"><aside class="newspaper" :class="article.variant" aria-hidden="true"><span>{{ article.eyebrow }}</span><b>{{ article.title }}</b><p>{{ article.body }}</p></aside></PinnedEvidence></template>
+<template>
+  <PinnedEvidence :id="article.id" :position="article" :pins="article.pins">
+    <aside class="newspaper" :class="article.variant" aria-hidden="true">
+      <span>{{ article.eyebrow }}</span>
+      <b>{{ article.title }}</b>
+      <p>{{ article.body }}</p>
+    </aside>
+  </PinnedEvidence>
+</template>
+
 <script setup lang="ts">
-import type { NewspaperArticle } from '../../types/evidence-board'; import PinnedEvidence from './PinnedEvidence.vue'
-defineProps<{article:NewspaperArticle}>()
+import type { NewspaperArticle } from '../../types/evidence-board'
+import PinnedEvidence from './PinnedEvidence.vue'
+
+defineProps<{ article: NewspaperArticle }>()
 </script>
-<style scoped>.newspaper{width:175px;padding:11px 13px;border:1px solid #6d5b43;background:repeating-linear-gradient(0deg,#c8b995 0 18px,#a3916e 19px);color:#2a2118;box-shadow:3px 5px 8px #140a0688;filter:sepia(.18)}.newspaper:before{content:'';position:absolute;inset:5px;border:1px solid #4c403155}.newspaper span{display:block;padding-bottom:4px;border-bottom:2px solid #3e3327;font:bold .52rem 'Special Elite';letter-spacing:.04em}.newspaper b{display:block;margin:7px 0 5px;font:1rem/1.05 'Staatliches'}.newspaper p{margin:0;white-space:pre-line;font-size:.58rem;line-height:1.35}.small{width:160px}.updates{width:215px;padding:12px 15px;background:repeating-linear-gradient(0deg,#d2c39f 0 19px,#a79572 20px)}.updates b{font-size:1.08rem;line-height:1.05;color:#792b25}.updates p{font-size:.61rem;line-height:1.45}@media(max-width:1250px){.newspaper{width:145px}.small{display:none}.updates{left:auto!important;right:7%;width:180px}.updates b{font-size:.95rem}.updates p{font-size:.56rem}}@media(max-width:1000px){.newspaper{display:none}}</style>
+<style scoped>
+.newspaper {
+  width: 175px;
+  padding: 11px 13px;
+  border: 1px solid #6d5b43;
+  background: repeating-linear-gradient(0deg,#c8b995 0 18px,#a3916e 19px);
+  color: #2a2118;
+  box-shadow: 3px 5px 8px #140a0688;
+  filter: sepia(.18);
+}
+
+.newspaper:before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid #4c403155;
+}
+
+.newspaper span {
+  display: block;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #3e3327;
+  font: bold .52rem 'Special Elite';
+  letter-spacing: .04em;
+}
+
+.newspaper b {
+  display: block;
+  margin: 7px 0 5px;
+  font: 1rem/1.05 'Staatliches';
+}
+
+.newspaper p {
+  margin: 0;
+  white-space: pre-line;
+  font-size: .58rem;
+  line-height: 1.35;
+}
+
+.small {
+  width: 160px;
+}
+
+.updates {
+  width: 215px;
+  padding: 12px 15px;
+  background: repeating-linear-gradient(0deg,#d2c39f 0 19px,#a79572 20px);
+}
+
+.updates b {
+  font-size: 1.08rem;
+  line-height: 1.05;
+  color: #792b25;
+}
+
+.updates p {
+  font-size: .61rem;
+  line-height: 1.45;
+}
+
+</style>
