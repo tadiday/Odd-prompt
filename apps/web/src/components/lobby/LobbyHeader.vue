@@ -12,12 +12,12 @@
 
       <div class="brand-content">
         <div class="brand-title">
-          <span>Odd</span>
-          <strong>Prompt</strong>
+          <span>THE</span>
+          <strong>ODD ONE</strong>
         </div>
 
         <div class="brand-subtitle">
-          THE PARTY GAME
+          THE PARTY GAME OF HIDDEN IDENTITIES
         </div>
       </div>
     </div>
@@ -411,5 +411,77 @@ defineEmits<{
   .brand-subtitle {
     font-size: .42rem;
   }
+}
+
+/* The lobby header shares the homepage evidence-strip treatment. */
+.topbar {
+  top: 12px;
+  width: calc(100% - 44px);
+  height: 72px;
+  min-height: 72px;
+  align-items: center;
+  padding: 10px 18px;
+  border: 1px solid #765f43;
+  background-color: #cbb991;
+  background-image:
+    repeating-linear-gradient(0deg,transparent 0 25px,#725f4322 26px),
+    url('../../assets/textures/aged-paper.png');
+  background-size: auto,cover;
+  background-blend-mode: normal,soft-light;
+  color: #251c14;
+  box-shadow: 3px 6px 10px #160b0677,inset 0 0 12px #69482320;
+  transform: translateX(-50%) rotate(-.12deg);
+}
+
+.leave-button {
+  top: 16px;
+  left: 18px;
+  padding: 10px 14px;
+  border-color: #6d5438;
+  background: #b49f78;
+  color: #251c14;
+  font-size: .82rem;
+}
+
+.brand {
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 2.15rem;
+}
+
+.brand-title {
+  color: #251c14;
+  font-size: 1.8rem;
+}
+
+.brand-title strong {
+  color: #a72b23;
+}
+
+.brand-subtitle {
+  margin-top: 3px;
+  color: #493729;
+  font-size: .7rem;
+  letter-spacing: .06em;
+}
+
+.top-actions {
+  top: 18px;
+  right: 18px;
+  padding: 9px 14px;
+  border-color: #5d4632;
+  background: #251b14;
+  color: #eadcc4;
+  font-size: .78rem;
+}
+
+.connection-text {
+  color: #eadcc4;
 }
 </style>

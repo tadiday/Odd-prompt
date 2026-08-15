@@ -551,6 +551,315 @@
   }
 }
 
+/* Fixed lobby canvas: matches the homepage's 1360 × 920 evidence board. */
+.waiting-layout {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  width: 1360px;
+  max-width: none;
+  height: 920px;
+  min-height: 0;
+  max-height: none;
+  grid-template-columns: 270px minmax(0,1fr) 280px;
+  grid-template-rows: minmax(0,1fr) 68px;
+  gap: 16px;
+  margin: 0;
+  padding: 112px 24px 105px;
+  border-width: 14px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.lobby-card,.mode-card,.settings-card {
+  min-height: 0;
+  margin: 0;
+  transform: none;
+}
+
+.lobby-progress {
+  position: absolute!important;
+  right: auto!important;
+  bottom: 18px!important;
+  left: 50%!important;
+  width: min(900px,calc(100% - 80px))!important;
+  margin: 0!important;
+  transform: translateX(-50%)!important;
+}
+
+/* Keep the cork grain on the board itself; the pseudo-elements are used by red string. */
+.waiting-layout {
+  background-color: var(--case-cork)!important;
+  background-image:
+    radial-gradient(circle at 50% 0%,rgb(255 190 100 / 11%),transparent 35%),
+    radial-gradient(circle,rgb(24 12 6 / 38%) 0 .8px,transparent 1.25px),
+    radial-gradient(circle,rgb(235 190 135 / 12%) 0 .65px,transparent 1.1px),
+    linear-gradient(115deg,rgb(255 255 255 / 2%),transparent 45%,rgb(20 10 5 / 9%))!important;
+  background-position: center,0 0,3px 4px,center!important;
+  background-size: 100% 100%,7px 7px,11px 11px,100% 100%!important;
+  background-repeat: no-repeat,repeat,repeat,no-repeat!important;
+}
+
+/* Pushpins intentionally sit above the paper edge. */
+.panel {
+  overflow: visible;
+}
+
+.waiting-layout::before,
+.waiting-layout::after {
+  display: none;
+}
+
+/* Game modes are taped sticky notes placed on the larger case sheet. */
+.mode-card :deep(.modes-grid) {
+  align-items: stretch;
+  gap: 18px;
+  padding: 24px 18px 28px;
+  overflow: visible;
+}
+
+.mode-card .panel-content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 18px 26px;
+  overflow: visible;
+}
+
+.mode-card :deep(.mode-selector),
+.mode-card .mode-selector-wrapper {
+  overflow: visible;
+}
+
+.mode-card :deep(.mode-tile) {
+  width: calc(100% - 8px);
+  min-height: 248px;
+  justify-self: center;
+  padding: 24px 18px;
+  overflow: visible;
+  border: 1px solid #846c45;
+  border-radius: 1px;
+  background-color: #d2b577;
+  background-image:
+    linear-gradient(100deg,#76532914,transparent 14%,transparent 86%,#60401e10),
+    url('../assets/textures/aged-paper.png');
+  background-position: center;
+  background-size: auto,cover;
+  background-blend-mode: normal,soft-light;
+  box-shadow: 3px 6px 8px #2a160b55,inset 0 0 9px #68461f24;
+  clip-path: none;
+}
+
+.mode-card :deep(.mode-tile::before) {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  top: -11px;
+  left: 50%;
+  width: 64px;
+  height: 20px;
+  background: linear-gradient(90deg,#a98e5fc9,#dac48fe0 18%,#c4aa74dc 82%,#96784dbd);
+  clip-path: polygon(3% 8%,97% 0,94% 91%,4% 100%);
+  box-shadow: 0 1px 2px #2b180c55;
+  transform: translateX(-50%) rotate(-2deg);
+  opacity: .86;
+  pointer-events: none;
+}
+
+.mode-card :deep(.mode-tile:first-child) {
+  transform: rotate(-.55deg)!important;
+}
+
+.mode-card :deep(.mode-tile:last-child) {
+  background-color: #c4aa76;
+  transform: translateY(3px) rotate(.5deg)!important;
+}
+
+.mode-card :deep(.mode-tile:last-child::before) {
+  transform: translateX(-50%) rotate(3deg);
+}
+
+.mode-card :deep(.mode-tile.active) {
+  border: 2px solid #982d25;
+  background-color: #d8bb7e;
+  box-shadow: 4px 7px 9px #2a160b66,inset 0 0 9px #68461f20;
+}
+
+.mode-card :deep(.mode-tile:first-child.active) {
+  transform: translateY(-2px) rotate(-.35deg)!important;
+}
+
+.mode-card :deep(.mode-tile strong) {
+  color: #241b12;
+  font-size: 1.55rem;
+}
+
+.mode-card :deep(.mode-tile small) {
+  max-width: 220px;
+  color: #30251a!important;
+  font-size: .86rem;
+  line-height: 1.5;
+}
+
+.mode-card :deep(.mode-icon) {
+  margin-bottom: 15px;
+  font-size: 2.8rem;
+}
+
+.about-mode {
+  min-height: 92px;
+  margin-top: 18px;
+  padding: 15px 16px;
+  box-sizing: border-box;
+}
+
+.about-mode h4 {
+  margin-bottom: 10px;
+}
+
+.about-mode p {
+  max-width: 96%;
+}
+
+/* The large cards are paper sheets, not miniature corkboards. */
+.panel {
+  background-color: #d3c6a5;
+  background-image:
+    linear-gradient(90deg,#6b4b2812,transparent 7%,transparent 93%,#6b4b2810),
+    repeating-linear-gradient(0deg,transparent 0 27px,#79694f1d 28px),
+    url('../assets/textures/aged-paper.png');
+  background-position: center;
+  background-size: auto,auto,cover;
+  background-blend-mode: normal,normal,soft-light;
+  box-shadow: inset 0 0 18px #65452122,3px 6px 10px #0008;
+}
+
+/* Stronger ink survives the full-board scale on lower-density displays. */
+.section-description,
+.player-row,
+.mode-card :deep(.mode-tile small),
+.about-mode p,
+.start-area small,
+.waiting-host {
+  color: #211910!important;
+  font-weight: 700;
+}
+
+.panel-label,
+.room-code span,
+.player-name strong,
+.you-label,
+.about-mode h4,
+.outline-button {
+  font-weight: 800;
+}
+
+.settings-card :deep(.setting-control input),
+.settings-card :deep(.setting-control select) {
+  color: #1e1710;
+  font-weight: 800;
+}
+
+/* Readable lobby type floor. */
+.panel-label {
+  color: #493a2b;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.panel-header h2 {
+  font-size: 1.45rem;
+}
+
+.room-code span {
+  color: #493a2b;
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.outline-button {
+  font-size: .8rem;
+}
+
+.players-header h3 {
+  font-size: 1.15rem;
+}
+
+.player-name strong {
+  color: #211910;
+  font-size: .88rem;
+}
+
+.you-label {
+  font-size: .76rem;
+}
+
+.host-status,.ready-status {
+  font-size: .7rem;
+}
+
+.player-row.empty span {
+  color: #493d2f;
+  font-size: .8rem;
+}
+
+.section-description {
+  color: #30261c;
+  font-size: .84rem;
+}
+
+.mode-card>.panel-header:before {
+  font-size: 1.18rem;
+}
+
+.mode-card :deep(.mode-tile strong) {
+  font-size: 1.45rem;
+}
+
+.mode-card :deep(.mode-tile small) {
+  color: #2e251b;
+  font-size: .82rem;
+  line-height: 1.4;
+}
+
+.about-mode h4 {
+  font-size: .82rem;
+}
+
+.about-mode p {
+  color: #30261c;
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+.settings-card :deep(.setting-name label) {
+  font-size: .96rem;
+}
+
+.settings-card :deep(.setting-control input),.settings-card :deep(.setting-control select) {
+  font-size: .86rem;
+}
+
+.start-area small {
+  color: #3f3326;
+  font-size: .74rem;
+}
+
+.waiting-host {
+  font-size: .82rem;
+}
+
+.mode-card :deep(.coming-soon) {
+  font-size: .7rem;
+}
+
+.lobby-progress :deep(.progressive-label) {
+  font-size: .72rem;
+}
+
+.lobby-progress::before {
+  font-size: .66rem;
+}
+
 /* Match the exact footer anchor used by every game phase. */
 .waiting-layout {
   padding-bottom: 105px;
@@ -588,4 +897,24 @@
   .lobby-card,.mode-card,.settings-card {
     min-height: 0;
   }
+}
+
+/* Keep the logical canvas intact even when the browser viewport is narrower. */
+.waiting-layout {
+  width: 1360px;
+  height: 920px;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  padding: 112px 24px 105px;
+  border-width: 14px;
+}
+
+.lobby-progress {
+  position: absolute!important;
+  bottom: 18px!important;
+  left: 50%!important;
+  width: min(900px,calc(100% - 80px))!important;
+  margin: 0!important;
+  transform: translateX(-50%)!important;
 }

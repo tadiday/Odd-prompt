@@ -1,32 +1,34 @@
 <template>
   <main class="lobby-page">
-    <section class="game-shell">
-      <LobbyHeader :connection-status="connectionStatus" @leave="leaveRoom" />
+    <div class="lobby-viewport" :style="lobbyViewportStyle">
+      <section class="game-shell">
+        <LobbyHeader :connection-status="connectionStatus" @leave="leaveRoom" />
 
-      <WaitingLobby
-        v-if="gameStore.roomStatus === 'waiting'"
-        :room-code="roomCode"
-        :players="roomPlayers"
-        :current-player-id="gameStore.currentPlayer?.id"
-        :is-host="gameStore.isHost"
-        :error-message="gameStore.errorMessage"
-        @start="startGame"
-        @change-setting="updateRoomSetting"
-      />
+        <WaitingLobby
+          v-if="gameStore.roomStatus === 'waiting'"
+          :room-code="roomCode"
+          :players="roomPlayers"
+          :current-player-id="gameStore.currentPlayer?.id"
+          :is-host="gameStore.isHost"
+          :error-message="gameStore.errorMessage"
+          @start="startGame"
+          @change-setting="updateRoomSetting"
+        />
 
-      <AnswerPhase v-else-if="gameStore.roomStatus === 'answering'" />
-      <RevealPhase v-else-if="gameStore.roomStatus === 'reveal'" />
-      <DiscussVotePhase
-        v-else-if="gameStore.roomStatus === 'discussion' || gameStore.roomStatus === 'voting'"
-      />
-      <ResultsPhase v-else-if="gameStore.roomStatus === 'results'" />
-    </section>
+        <AnswerPhase v-else-if="gameStore.roomStatus === 'answering'" />
+        <RevealPhase v-else-if="gameStore.roomStatus === 'reveal'" />
+        <DiscussVotePhase
+          v-else-if="gameStore.roomStatus === 'discussion' || gameStore.roomStatus === 'voting'"
+        />
+        <ResultsPhase v-else-if="gameStore.roomStatus === 'results'" />
+      </section>
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
 import type { RoomSetting } from '@odd-prompt/shared'
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import LobbyHeader from '../components/lobby/LobbyHeader.vue'
 import WaitingLobby from '../components/lobby/WaitingLobby.vue'
@@ -42,6 +44,31 @@ const gameStore = useGameStore()
 const roomCode = computed(() => String(route.params.roomCode || gameStore.roomCode || 'NEW'))
 const roomPlayers = computed(() => gameStore.roomPlayers)
 const connectionStatus = computed(() => gameStore.connectionStatus)
+const lobbyScale = ref(1)
+const BOARD_WIDTH = 1360
+const BOARD_HEIGHT = 920
+const VIEWPORT_GUTTER = 36
+
+const lobbyViewportStyle = computed(() => ({
+  '--lobby-scale': lobbyScale.value,
+  width: `${BOARD_WIDTH * lobbyScale.value}px`,
+  height: `${BOARD_HEIGHT * lobbyScale.value}px`,
+}))
+
+function fitLobbyToViewport() {
+  const availableWidth = Math.max(0, window.innerWidth - VIEWPORT_GUTTER)
+  const availableHeight = Math.max(0, window.innerHeight - VIEWPORT_GUTTER)
+  lobbyScale.value = Math.min(1, availableWidth / BOARD_WIDTH, availableHeight / BOARD_HEIGHT)
+}
+
+onMounted(() => {
+  fitLobbyToViewport()
+  window.addEventListener('resize', fitLobbyToViewport)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', fitLobbyToViewport)
+})
 
 const startGame = () => gameStore.startGame()
 
@@ -79,45 +106,43 @@ function updateRoomSetting(setting: RoomSetting, value: string | number) {
 }
 
 .lobby-page {
-  height: 100vh;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
-  padding: 0 18px 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
   box-sizing: border-box;
   background: radial-gradient(circle at 50% 0, #4a3420 0, transparent 25%), radial-gradient(#76523718 1px, transparent 1px), #090a08;
   background-size: auto, 7px 7px;
   color: #d9cbb4;
-  overflow: auto;
+  overflow: hidden;
+}
+
+.lobby-viewport {
+  position: relative;
+  flex: none;
 }
 
 .game-shell {
   position: relative;
   display: flex;
-  width: 100%;
-  max-width: var(--case-board-width);
-  min-height: 100vh;
+  width: 1360px;
+  max-width: none;
+  height: 920px;
+  min-height: 0;
   flex-direction: column;
-  margin: 0 auto;
-  padding: 0 10px 12px;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
   overflow: hidden;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-}
-
-@media (max-width: 700px) {
-  .lobby-page {
-    padding: 10px;
-  }
-  .game-shell {
-    min-height: calc(100vh - 20px);
-    padding: 0 10px 10px;
-    overflow: visible;
-    border-radius: 14px;
-  }
+  transform: scale(var(--lobby-scale));
+  transform-origin: top left;
 }
 
 </style>
