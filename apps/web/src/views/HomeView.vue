@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/gameStore'
 import { avatars } from '../data/avatars'
@@ -143,6 +143,7 @@ import EvidencePin from '../components/evidence-board/EvidencePin.vue'
 import { suspects } from '../data/suspects'
 import { evidenceConnections } from '../data/connections'
 import { boardDecorations, newspaperClippings } from '../data/boardDecorations'
+import { useFixedCanvasScale } from '../composables/useFixedCanvasScale'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -152,36 +153,14 @@ const playerName = ref('')
 const roomCode = ref('')
 const showGuide = ref(false)
 const activeRoomForm = ref<'create' | 'join'>('create')
-const boardViewport = ref<HTMLElement | null>(null)
-const boardScale = ref(1)
-const BOARD_WIDTH = 1360
-const BOARD_HEIGHT = 920
-const VIEWPORT_GUTTER = 36
-let boardResizeObserver: ResizeObserver | null = null
-
-const boardViewportStyle = computed(() => ({
-  '--board-scale': boardScale.value,
-  width: `${BOARD_WIDTH * boardScale.value}px`,
-  height: `${BOARD_HEIGHT * boardScale.value}px`,
-}))
-
-function fitBoardToViewport() {
-  const availableWidth = Math.max(0, window.innerWidth - VIEWPORT_GUTTER)
-  const availableHeight = Math.max(0, window.innerHeight - VIEWPORT_GUTTER)
-  boardScale.value = Math.min(1, availableWidth / BOARD_WIDTH, availableHeight / BOARD_HEIGHT)
-}
-
-onMounted(async () => {
-  await nextTick()
-  fitBoardToViewport()
-  boardResizeObserver = new ResizeObserver(fitBoardToViewport)
-  if (boardViewport.value?.parentElement) boardResizeObserver.observe(boardViewport.value.parentElement)
-  window.addEventListener('resize', fitBoardToViewport)
-})
-
-onBeforeUnmount(() => {
-  boardResizeObserver?.disconnect()
-  window.removeEventListener('resize', fitBoardToViewport)
+const {
+  viewportElement: boardViewport,
+  viewportStyle: boardViewportStyle,
+} = useFixedCanvasScale({
+  width: 1360,
+  height: 920,
+  scaleProperty: '--board-scale',
+  observeParent: true,
 })
 
 function suspectName(name: string) {

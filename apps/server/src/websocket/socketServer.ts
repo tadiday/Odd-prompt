@@ -7,6 +7,23 @@ import { assignPromptsToRoom, broadcastToRoom, finalizeAnswerPhase, storeVote } 
 import { answersByRoom, clearRoomState, recentPromptIdsByRoom, roomAssignments, rooms, roundPromptsByRoom, sessions, votesByRoom, type PlayerSession } from '../game/gameState.js';
 
 const preferredPort = Number(process.env.PORT ?? 3001);
+const DEFAULT_ROOM_OPTIONS: RoomOptions = {
+  imposterCount: 1,
+  answerTimerSeconds: 45,
+  discussionTimerSeconds: 60,
+  votingTimerSeconds: 30,
+  isPrivate: true
+};
+const ALLOWED_AVATAR_IDS = new Set([
+  'cool-cat', 'cool-dog', 'cool-panda', 'cool-mouse',
+  'cool-parrot', 'cool-bear', 'cool-rabbit', 'cool-fox',
+  'cool-shiba', 'cool-lion', 'cool-cow', 'cool-owl'
+]);
+
+interface IncomingMessage {
+  type: string;
+  payload?: Record<string, unknown>;
+}
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   startServer(preferredPort);
@@ -39,10 +56,10 @@ export function attachGameSocketServer(wss: WebSocketServer) {
   wss.on('connection', (socket) => {
     socket.on('message', (raw) => {
       try {
-        const message = JSON.parse(raw.toString());
+        const message = JSON.parse(raw.toString()) as IncomingMessage;
         handleMessage(socket, message);
-      } catch (error) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidMessage', message: 'Message must be valid JSON.' } }));
+      } catch {
+        sendError(socket, 'invalidMessage', 'Message must be valid JSON.');
       }
     });
 
@@ -76,45 +93,19 @@ export function attachGameSocketServer(wss: WebSocketServer) {
 
 }
 
-function handleMessage(socket: WebSocket, message: { type: string; payload?: any }) {
-  console.log('server received ws message', message?.type, message?.payload);
-
+function handleMessage(socket: WebSocket, message: IncomingMessage) {
   switch (message.type) {
     case WS_EVENT.createRoom: {
       const roomCode = generateRoomCode();
-      const options = message.payload?.options ?? {
-        imposterCount: 1,
-        answerTimerSeconds: 45,
-        discussionTimerSeconds: 60,
-        votingTimerSeconds: 30,
-        isPrivate: true
-      };
-
-      const session: PlayerSession = {
-        id: uuidv4(),
-        username: message.payload?.hostName || 'Host',
-        avatarId: normalizeAvatarId(message.payload?.avatarId),
-        roomCode,
+      const options = (message.payload?.options as RoomOptions | undefined) ?? DEFAULT_ROOM_OPTIONS;
+      const session = createPlayerSession({
         socket,
-        isHost: true,
-        isImposter: false,
-        isConnected: true,
-        joinedAt: new Date().toISOString(),
-        score: 0
-      };
-
-      const player: Player = {
-        id: session.id,
-        roomId: roomCode,
-        username: session.username,
-        avatarId: session.avatarId,
-        isHost: session.isHost,
-        isImposter: session.isImposter,
-        isConnected: session.isConnected,
-        sessionId: session.id,
-        joinedAt: session.joinedAt,
-        score: session.score
-      };
+        roomCode,
+        username: String(message.payload?.hostName || 'Host'),
+        avatarId: message.payload?.avatarId,
+        isHost: true
+      });
+      const player = sessionToPlayer(session);
 
       const room: Room = {
         id: uuidv4(),
@@ -130,87 +121,60 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
 
       sessions.set(socket, session);
       rooms.set(roomCode, room);
-      console.log('server roomCreated', {
+      sendMessage(socket, WS_EVENT.roomCreated, {
         room,
         player: { ...player, isHost: true }
       });
-      socket.send(JSON.stringify({
-        type: WS_EVENT.roomCreated,
-        payload: {
-          room,
-          player: { ...player, isHost: true }
-        }
-      }));
       break;
     }
     case WS_EVENT.joinRoom: {
-      const room = rooms.get(message.payload?.roomCode);
+      const room = rooms.get(String(message.payload?.roomCode ?? ''));
       if (!room) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidRoomCode', message: 'Room not found.' } }));
+        sendError(socket, 'invalidRoomCode', 'Room not found.');
         return;
       }
 
       if (room.players.some((player) => player.username === message.payload?.playerName)) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'duplicateUsername', message: 'Username already taken in this room.' } }));
+        sendError(socket, 'duplicateUsername', 'Username already taken in this room.');
         return;
       }
 
-      const session: PlayerSession = {
-        id: uuidv4(),
-        username: message.payload?.playerName || 'Player',
-        avatarId: normalizeAvatarId(message.payload?.avatarId),
-        roomCode: room.code,
+      const session = createPlayerSession({
         socket,
-        isHost: false,
-        isImposter: false,
-        isConnected: true,
-        joinedAt: new Date().toISOString(),
-        score: 0
-      };
-
-      const player: Player = {
-        id: session.id,
-        roomId: room.code,
-        username: session.username,
-        avatarId: session.avatarId,
-        isHost: session.isHost,
-        isImposter: session.isImposter,
-        isConnected: session.isConnected,
-        sessionId: session.id,
-        joinedAt: session.joinedAt,
-        score: session.score
-      };
+        roomCode: room.code,
+        username: String(message.payload?.playerName || 'Player'),
+        avatarId: message.payload?.avatarId,
+        isHost: false
+      });
+      const player = sessionToPlayer(session);
 
       sessions.set(socket, session);
       room.players.push({ ...player, isHost: false });
 
-      socket.send(JSON.stringify({
-        type: WS_EVENT.roomJoined,
-        payload: {
-          room,
-          player: { ...player, isHost: false }
-        }
-      }));
+      sendMessage(socket, WS_EVENT.roomJoined, {
+        room,
+        player: { ...player, isHost: false }
+      });
 
       broadcastToRoom(room.code, WS_EVENT.playerJoined, { player });
       broadcastToRoom(room.code, WS_EVENT.roomUpdated, { room });
       break;
     }
     case WS_EVENT.startGame: {
-      const room = rooms.get(message.payload?.roomCode);
+      const room = rooms.get(String(message.payload?.roomCode ?? ''));
       if (!room) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidRoomCode', message: 'Room not found.' } }));
+        sendError(socket, 'invalidRoomCode', 'Room not found.');
         return;
       }
 
       const session = sessions.get(socket);
       if (!session || session.roomCode !== room.code || room.hostId !== session.id) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'notHost', message: 'Only the host can start the game.' } }));
+        sendError(socket, 'notHost', 'Only the host can start the game.');
         return;
       }
 
       if (room.status !== 'waiting') {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidStateTransition', message: 'Game has already started.' } }));
+        sendError(socket, 'invalidStateTransition', 'Game has already started.');
         return;
       }
 
@@ -249,7 +213,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
           targetSession.isImposter = assignment.role === 'imposter';
         }
         if (targetSession?.socket) {
-          targetSession.socket.send(JSON.stringify({ type: WS_EVENT.promptAssigned, payload: assignment }));
+          sendMessage(targetSession.socket, WS_EVENT.promptAssigned, assignment);
         }
       }
 
@@ -267,15 +231,15 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       break;
     }
     case WS_EVENT.updateHostSettings: {
-      const room = rooms.get(message.payload?.roomCode);
+      const room = rooms.get(String(message.payload?.roomCode ?? ''));
       if (!room) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidRoomCode', message: 'Room not found.' } }));
+        sendError(socket, 'invalidRoomCode', 'Room not found.');
         return;
       }
 
       const session = sessions.get(socket);
       if (!session || session.roomCode !== room.code || room.hostId !== session.id) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'notHost', message: 'Only the host can update settings.' } }));
+        sendError(socket, 'notHost', 'Only the host can update settings.');
         return;
       }
 
@@ -302,7 +266,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
           room.options.imposterCount = Number(rawValue);
           break;
         default:
-          socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidSetting', message: 'Unknown setting.' } }));
+          sendError(socket, 'invalidSetting', 'Unknown setting.');
           return;
       }
 
@@ -310,20 +274,20 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       break;
     }
     case WS_EVENT.submitAnswer: {
-      const room = rooms.get(message.payload?.roomCode);
+      const room = rooms.get(String(message.payload?.roomCode ?? ''));
       if (!room) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidRoomCode', message: 'Room not found.' } }));
+        sendError(socket, 'invalidRoomCode', 'Room not found.');
         return;
       }
 
       const session = sessions.get(socket);
       if (!session || session.roomCode !== room.code) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidSession', message: 'Player session not found.' } }));
+        sendError(socket, 'invalidSession', 'Player session not found.');
         return;
       }
 
       if (room.status !== 'answering') {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidStateTransition', message: 'The room is not accepting answers right now.' } }));
+        sendError(socket, 'invalidStateTransition', 'The room is not accepting answers right now.');
         return;
       }
 
@@ -331,7 +295,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
 
       const answers = answersByRoom.get(room.code) ?? [];
       if (answers.some((existing) => existing.playerId === session.id)) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'duplicateAnswer', message: 'You already submitted an answer for this round.' } }));
+        sendError(socket, 'duplicateAnswer', 'You already submitted an answer for this round.');
         return;
       }
 
@@ -351,32 +315,32 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       break;
     }
     case WS_EVENT.submitVote: {
-      const room = rooms.get(message.payload?.roomCode);
+      const room = rooms.get(String(message.payload?.roomCode ?? ''));
       if (!room) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidRoomCode', message: 'Room not found.' } }));
+        sendError(socket, 'invalidRoomCode', 'Room not found.');
         return;
       }
 
       const session = sessions.get(socket);
       if (!session || session.roomCode !== room.code) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidSession', message: 'Player session not found.' } }));
+        sendError(socket, 'invalidSession', 'Player session not found.');
         return;
       }
 
       if (room.status !== 'voting') {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidStateTransition', message: 'The room is not accepting votes right now.' } }));
+        sendError(socket, 'invalidStateTransition', 'The room is not accepting votes right now.');
         return;
       }
 
       const targetPlayerId = String(message.payload?.targetPlayerId ?? '').trim();
       if (!targetPlayerId || targetPlayerId === session.id || !room.players.some((player) => player.id === targetPlayerId)) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidVoteTarget', message: 'You must vote for a valid opponent.' } }));
+        sendError(socket, 'invalidVoteTarget', 'You must vote for a valid opponent.');
         return;
       }
 
       const targetPlayer = room.players.find((player) => player.id === targetPlayerId);
       if (!targetPlayer) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidVoteTarget', message: 'Target player was not found.' } }));
+        sendError(socket, 'invalidVoteTarget', 'Target player was not found.');
         return;
       }
 
@@ -384,20 +348,20 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       break;
     }
     case WS_EVENT.skipVote: {
-      const room = rooms.get(message.payload?.roomCode);
+      const room = rooms.get(String(message.payload?.roomCode ?? ''));
       if (!room) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidRoomCode', message: 'Room not found.' } }));
+        sendError(socket, 'invalidRoomCode', 'Room not found.');
         return;
       }
 
       const session = sessions.get(socket);
       if (!session || session.roomCode !== room.code) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidSession', message: 'Player session not found.' } }));
+        sendError(socket, 'invalidSession', 'Player session not found.');
         return;
       }
 
       if (room.status !== 'voting') {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidStateTransition', message: 'The room is not accepting votes right now.' } }));
+        sendError(socket, 'invalidStateTransition', 'The room is not accepting votes right now.');
         return;
       }
 
@@ -405,21 +369,21 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       break;
     }
     case WS_EVENT.readyForNextRound: {
-      const room = rooms.get(message.payload?.roomCode);
+      const room = rooms.get(String(message.payload?.roomCode ?? ''));
       const session = sessions.get(socket);
 
       if (!room || !session || session.roomCode !== room.code) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidSession', message: 'Room or player session not found.' } }));
+        sendError(socket, 'invalidSession', 'Room or player session not found.');
         return;
       }
 
       if (room.hostId !== session.id) {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'notHost', message: 'Only the host can start another round.' } }));
+        sendError(socket, 'notHost', 'Only the host can start another round.');
         return;
       }
 
       if (room.status !== 'results') {
-        socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'invalidStateTransition', message: 'The current round has not finished.' } }));
+        sendError(socket, 'invalidStateTransition', 'The current round has not finished.');
         return;
       }
 
@@ -446,8 +410,7 @@ function handleMessage(socket: WebSocket, message: { type: string; payload?: any
       break;
     }
     default:
-      console.warn('unsupported ws message type received:', message.type, message.payload);
-      socket.send(JSON.stringify({ type: WS_EVENT.error, payload: { code: 'unsupportedMessage', message: 'This message type is not supported yet.' } }));
+      sendError(socket, 'unsupportedMessage', 'This message type is not supported yet.');
   }
 }
 
@@ -457,11 +420,55 @@ function generateRoomCode() {
 
 function normalizeAvatarId(value: unknown) {
   const avatarId = String(value ?? 'cool-cat');
-  const allowedAvatarIds = new Set([
-    'cool-cat', 'cool-dog', 'cool-panda', 'cool-mouse',
-    'cool-parrot', 'cool-bear', 'cool-rabbit', 'cool-fox',
-    'cool-shiba', 'cool-lion', 'cool-cow', 'cool-owl'
-  ]);
+  return ALLOWED_AVATAR_IDS.has(avatarId) ? avatarId : 'cool-cat';
+}
 
-  return allowedAvatarIds.has(avatarId) ? avatarId : 'cool-cat';
+function createPlayerSession({
+  socket,
+  roomCode,
+  username,
+  avatarId,
+  isHost
+}: {
+  socket: WebSocket;
+  roomCode: string;
+  username: string;
+  avatarId: unknown;
+  isHost: boolean;
+}): PlayerSession {
+  return {
+    id: uuidv4(),
+    username,
+    avatarId: normalizeAvatarId(avatarId),
+    roomCode,
+    socket,
+    isHost,
+    isImposter: false,
+    isConnected: true,
+    joinedAt: new Date().toISOString(),
+    score: 0
+  };
+}
+
+function sessionToPlayer(session: PlayerSession): Player {
+  return {
+    id: session.id,
+    roomId: session.roomCode,
+    username: session.username,
+    avatarId: session.avatarId,
+    isHost: session.isHost,
+    isImposter: session.isImposter,
+    isConnected: session.isConnected,
+    sessionId: session.id,
+    joinedAt: session.joinedAt,
+    score: session.score
+  };
+}
+
+function sendMessage(socket: WebSocket, type: string, payload: unknown) {
+  socket.send(JSON.stringify({ type, payload }));
+}
+
+function sendError(socket: WebSocket, code: string, message: string) {
+  sendMessage(socket, WS_EVENT.error, { code, message });
 }

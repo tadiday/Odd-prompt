@@ -1,6 +1,20 @@
 import { reactive } from 'vue';
+import type { ClientEventPayloadMap, ServerEventPayloadMap } from '@odd-prompt/shared';
 
-export type SocketEventHandler = (payload: any) => void;
+type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
+type SocketLifecycleEventMap = {
+  connected: { url: string; port?: number };
+  disconnected: { url: string };
+};
+type SocketEventMap = ServerEventPayloadMap & SocketLifecycleEventMap;
+type SocketEvent = keyof SocketEventMap;
+type SocketEventHandler<Event extends SocketEvent> = (payload: SocketEventMap[Event]) => void;
+type QueuedMessage = {
+  [Event in keyof ClientEventPayloadMap]: {
+    type: Event;
+    payload: ClientEventPayloadMap[Event];
+  }
+}[keyof ClientEventPayloadMap];
 
 const DEFAULT_PORTS = [3001, 3002, 3003, 3004, 3005];
 const configuredSocketUrl = import.meta.env.VITE_WEBSOCKET_URL?.trim();
@@ -16,10 +30,10 @@ function productionSocketUrl() {
 
 class GameSocketService {
   private socket: WebSocket | null = null;
-  private handlers = new Map<string, Set<SocketEventHandler>>();
-  private connectionState = reactive({ status: 'disconnected' as 'disconnected' | 'connecting' | 'connected' });
+  private handlers = new Map<SocketEvent, Set<(payload: never) => void>>();
+  private connectionState = reactive({ status: 'disconnected' as ConnectionStatus });
   private pendingAttempt = 0;
-  private sendQueue: Array<{ type: string; payload: unknown }> = [];
+  private sendQueue: QueuedMessage[] = [];
 
   connect() {
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
@@ -40,23 +54,23 @@ class GameSocketService {
     socket?.close();
   }
 
-  on(event: string, handler: SocketEventHandler) {
-    const handlers = this.handlers.get(event) ?? new Set<SocketEventHandler>();
-    handlers.add(handler);
+  on<Event extends SocketEvent>(event: Event, handler: SocketEventHandler<Event>) {
+    const handlers = this.handlers.get(event) ?? new Set<(payload: never) => void>();
+    handlers.add(handler as (payload: never) => void);
     this.handlers.set(event, handlers);
   }
 
-  off(event: string, handler: SocketEventHandler) {
-    this.handlers.get(event)?.delete(handler);
+  off<Event extends SocketEvent>(event: Event, handler: SocketEventHandler<Event>) {
+    this.handlers.get(event)?.delete(handler as (payload: never) => void);
   }
 
-  send(type: string, payload: unknown) {
+  send<Event extends keyof ClientEventPayloadMap>(type: Event, payload: ClientEventPayloadMap[Event]) {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ type, payload, timestamp: new Date().toISOString() }));
       return;
     }
 
-    this.sendQueue.push({ type, payload });
+    this.sendQueue.push({ type, payload } as QueuedMessage);
     this.connect();
   }
 
@@ -73,7 +87,10 @@ class GameSocketService {
     const port = DEFAULT_PORTS[this.pendingAttempt];
     if (!port) {
       this.connectionState.status = 'disconnected';
-      this.emit('error', { message: 'Unable to connect to the game server.' });
+      this.emit('error', {
+        code: 'connectionFailed',
+        message: 'Unable to connect to the game server.',
+      });
       return;
     }
 
@@ -101,8 +118,10 @@ class GameSocketService {
       }
 
       try {
-        const message = JSON.parse(event.data);
-        this.emit(message.type, message.payload);
+        const message = JSON.parse(event.data) as { type?: SocketEvent; payload?: unknown };
+        if (message.type) {
+          this.emit(message.type, message.payload as SocketEventMap[typeof message.type]);
+        }
       } catch (error) {
         console.error('Failed to parse socket message', error);
       }
@@ -143,8 +162,8 @@ class GameSocketService {
     }
   }
 
-  private emit(event: string, payload: unknown) {
-    this.handlers.get(event)?.forEach((handler) => handler(payload));
+  private emit<Event extends SocketEvent>(event: Event, payload: SocketEventMap[Event]) {
+    this.handlers.get(event)?.forEach((handler) => handler(payload as never));
   }
 }
 

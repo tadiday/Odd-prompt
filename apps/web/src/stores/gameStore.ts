@@ -53,14 +53,13 @@ export const useGameStore = defineStore('game', () => {
   });
 
   socketService.on(WS_EVENT.roomJoined, (payload: { room: Room; player: Player }) => {
-    currentRoom.value = payload.room;
+    setCurrentRoom(payload.room);
     currentPlayer.value = payload.player;
     resetRoundState();
   });
 
   socketService.on(WS_EVENT.roomUpdated, (payload: { room: Room }) => {
-    currentRoom.value = payload.room;
-    phaseEndsAt.value = payload.room.phaseEndsAt ?? null;
+    setCurrentRoom(payload.room);
 
     if (payload.room.status === 'waiting') {
       resetRoundState();
@@ -83,13 +82,11 @@ export const useGameStore = defineStore('game', () => {
   });
 
   socketService.on(WS_EVENT.discussionStarted, (payload: { room: Room; endsAt?: number; remainingSeconds?: number }) => {
-    currentRoom.value = payload.room;
-    phaseEndsAt.value = payload.endsAt ?? null;
+    setCurrentRoom(payload.room, payload.endsAt);
   });
 
   socketService.on(WS_EVENT.votingStarted, (payload: { room: Room; endsAt?: number; remainingSeconds?: number }) => {
-    currentRoom.value = payload.room;
-    phaseEndsAt.value = payload.endsAt ?? null;
+    setCurrentRoom(payload.room, payload.endsAt);
     votingResults.value = null;
     submittedVote.value = null;
   });
@@ -128,8 +125,7 @@ export const useGameStore = defineStore('game', () => {
   });
 
   socketService.on(WS_EVENT.gameStarted, (payload: { room: Room }) => {
-    currentRoom.value = payload.room;
-    phaseEndsAt.value = payload.room.phaseEndsAt ?? null;
+    setCurrentRoom(payload.room);
   });
 
   socketService.on(WS_EVENT.error, (payload: ErrorPayload) => {
@@ -155,6 +151,11 @@ export const useGameStore = defineStore('game', () => {
     votingResults.value = null;
     submittedVote.value = null;
     phaseEndsAt.value = null;
+  }
+
+  function setCurrentRoom(room: Room, endsAt = room.phaseEndsAt) {
+    currentRoom.value = room;
+    phaseEndsAt.value = endsAt ?? null;
   }
 
   const roomStatus = computed(() => currentRoom.value?.status ?? 'waiting');

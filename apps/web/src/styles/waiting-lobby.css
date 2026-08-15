@@ -3,6 +3,8 @@
   --red: #a72b23;
   --paper: #c9b594;
   --ink: #211910;
+  --stamp-red: #8e2923;
+  --paper-shadow: 3px 6px 10px #0008;
   position: relative;
   display: grid;
   grid-template-columns: 270px minmax(460px,1fr) 280px;
@@ -53,7 +55,7 @@
   background-color: var(--paper);
   background-image: radial-gradient(#4e38231e 1px,transparent 1px),linear-gradient(110deg,transparent,#73503216);
   background-size: 6px 6px,100% 100%;
-  box-shadow: inset 0 0 30px #51331d30,3px 6px 10px #0008;
+  box-shadow: inset 0 0 30px #51331d30,var(--paper-shadow);
 }
 
 .panel:before {
@@ -128,7 +130,7 @@
 .room-code strong {
   display: block;
   margin: 7px 0;
-  color: #8e2923;
+  color: var(--stamp-red);
   font: 2.2rem 'Staatliches';
   letter-spacing: .12em;
 }
@@ -218,7 +220,7 @@
 
 .host-status,.ready-status {
   padding: 3px 5px;
-  background: #8e2923;
+  background: var(--stamp-red);
   color: #eadcc4;
   font-size: .48rem;
 }
@@ -251,7 +253,7 @@
 .alert {
   margin: 5px 13px;
   padding: 8px;
-  border: 1px solid #8e2923;
+  border: 1px solid var(--stamp-red);
   background: #cda69f;
   color: #761e19;
   font-size: .6rem;
@@ -293,13 +295,13 @@
   border: 1px solid #71583b;
   border-radius: 2px;
   background: #b79d76;
-  color: #211910;
+  color: var(--ink);
   box-shadow: 2px 4px 8px #4b2d1970;
   font-family: 'Special Elite';
 }
 
 .mode-card :deep(.mode-tile.active) {
-  border: 2px solid #8e2923;
+  border: 2px solid var(--stamp-red);
   background: #c9aa7d;
 }
 
@@ -390,7 +392,7 @@
   border: 1px solid #4e4132;
   border-radius: 0;
   background: #bda985;
-  color: #211910;
+  color: var(--ink);
   font: bold .65rem 'Special Elite';
 }
 
@@ -437,7 +439,7 @@
   border-radius: 2px!important;
   background: #c4af8b!important;
   box-shadow: 2px 5px 10px #0008!important;
-  color: #211910!important;
+  color: var(--ink)!important;
   filter: sepia(.25);
 }
 
@@ -730,7 +732,7 @@
   background-position: center;
   background-size: auto,auto,cover;
   background-blend-mode: normal,normal,soft-light;
-  box-shadow: inset 0 0 18px #65452122,3px 6px 10px #0008;
+  box-shadow: inset 0 0 18px #65452122,var(--paper-shadow);
 }
 
 /* Stronger ink survives the full-board scale on lower-density displays. */
@@ -740,7 +742,7 @@
 .about-mode p,
 .start-area small,
 .waiting-host {
-  color: #211910!important;
+  color: var(--ink)!important;
   font-weight: 700;
 }
 
@@ -785,7 +787,7 @@
 }
 
 .player-name strong {
-  color: #211910;
+  color: var(--ink);
   font-size: .88rem;
 }
 

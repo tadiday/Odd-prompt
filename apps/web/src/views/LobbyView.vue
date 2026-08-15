@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import type { RoomSetting } from '@odd-prompt/shared'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import LobbyHeader from '../components/lobby/LobbyHeader.vue'
 import WaitingLobby from '../components/lobby/WaitingLobby.vue'
@@ -37,6 +37,7 @@ import RevealPhase from '../components/game/RevealPhase.vue'
 import DiscussVotePhase from '../components/game/DiscussVotePhase.vue'
 import ResultsPhase from '../components/game/ResultsPhase.vue'
 import { useGameStore } from '../stores/gameStore'
+import { useFixedCanvasScale } from '../composables/useFixedCanvasScale'
 
 const route = useRoute()
 const router = useRouter()
@@ -44,30 +45,10 @@ const gameStore = useGameStore()
 const roomCode = computed(() => String(route.params.roomCode || gameStore.roomCode || 'NEW'))
 const roomPlayers = computed(() => gameStore.roomPlayers)
 const connectionStatus = computed(() => gameStore.connectionStatus)
-const lobbyScale = ref(1)
-const BOARD_WIDTH = 1360
-const BOARD_HEIGHT = 920
-const VIEWPORT_GUTTER = 36
-
-const lobbyViewportStyle = computed(() => ({
-  '--lobby-scale': lobbyScale.value,
-  width: `${BOARD_WIDTH * lobbyScale.value}px`,
-  height: `${BOARD_HEIGHT * lobbyScale.value}px`,
-}))
-
-function fitLobbyToViewport() {
-  const availableWidth = Math.max(0, window.innerWidth - VIEWPORT_GUTTER)
-  const availableHeight = Math.max(0, window.innerHeight - VIEWPORT_GUTTER)
-  lobbyScale.value = Math.min(1, availableWidth / BOARD_WIDTH, availableHeight / BOARD_HEIGHT)
-}
-
-onMounted(() => {
-  fitLobbyToViewport()
-  window.addEventListener('resize', fitLobbyToViewport)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', fitLobbyToViewport)
+const { viewportStyle: lobbyViewportStyle } = useFixedCanvasScale({
+  width: 1360,
+  height: 920,
+  scaleProperty: '--lobby-scale',
 })
 
 const startGame = () => gameStore.startGame()

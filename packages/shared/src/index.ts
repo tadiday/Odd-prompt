@@ -105,6 +105,15 @@ export interface SubmitVotePayload {
   targetPlayerId: string;
 }
 
+export interface RoomCodePayload {
+  roomCode: string;
+}
+
+export interface UpdateHostSettingsPayload extends RoomCodePayload {
+  setting: RoomSetting;
+  value: string | number;
+}
+
 export interface BaseMessage<T, Type extends string = string> {
   type: Type;
   payload: T;
@@ -144,9 +153,25 @@ export type WSEventKey = keyof typeof WS_EVENT;
 export type ClientMessage =
   | BaseMessage<CreateRoomPayload, typeof WS_EVENT.createRoom>
   | BaseMessage<JoinRoomPayload, typeof WS_EVENT.joinRoom>
+  | BaseMessage<RoomCodePayload, typeof WS_EVENT.leaveRoom>
   | BaseMessage<StartGamePayload, typeof WS_EVENT.startGame>
+  | BaseMessage<UpdateHostSettingsPayload, typeof WS_EVENT.updateHostSettings>
   | BaseMessage<SubmitAnswerPayload, typeof WS_EVENT.submitAnswer>
-  | BaseMessage<SubmitVotePayload, typeof WS_EVENT.submitVote>;
+  | BaseMessage<SubmitVotePayload, typeof WS_EVENT.submitVote>
+  | BaseMessage<SubmitVotePayload, typeof WS_EVENT.skipVote>
+  | BaseMessage<RoomCodePayload, typeof WS_EVENT.readyForNextRound>;
+
+export interface ClientEventPayloadMap {
+  [WS_EVENT.createRoom]: CreateRoomPayload;
+  [WS_EVENT.joinRoom]: JoinRoomPayload;
+  [WS_EVENT.leaveRoom]: RoomCodePayload;
+  [WS_EVENT.startGame]: StartGamePayload;
+  [WS_EVENT.updateHostSettings]: UpdateHostSettingsPayload;
+  [WS_EVENT.submitAnswer]: SubmitAnswerPayload;
+  [WS_EVENT.submitVote]: SubmitVotePayload;
+  [WS_EVENT.skipVote]: SubmitVotePayload;
+  [WS_EVENT.readyForNextRound]: RoomCodePayload;
+}
 
 export interface ErrorPayload {
   code: string;
@@ -182,3 +207,22 @@ export type ServerMessage =
   | BaseMessage<VotingResults, typeof WS_EVENT.votingResults>
   | BaseMessage<{ room: Room }, typeof WS_EVENT.roundEnded>
   | BaseMessage<ErrorPayload, typeof WS_EVENT.error>;
+
+export interface ServerEventPayloadMap {
+  [WS_EVENT.roomCreated]: { room: Room; player: Player };
+  [WS_EVENT.roomJoined]: { room: Room; player: Player };
+  [WS_EVENT.roomUpdated]: { room: Room };
+  [WS_EVENT.playerJoined]: { player: Player };
+  [WS_EVENT.playerLeft]: { playerId: string; reason?: string };
+  [WS_EVENT.gameStarted]: { room: Room };
+  [WS_EVENT.promptAssigned]: PromptAssignment;
+  [WS_EVENT.answerSubmitted]: { answer: Answer };
+  [WS_EVENT.roundReveal]: { answers: Answer[]; prompts?: RoundPrompts };
+  [WS_EVENT.discussionStarted]: { room: Room; endsAt?: number; remainingSeconds?: number };
+  [WS_EVENT.votingStarted]: { room: Room; endsAt?: number; remainingSeconds?: number };
+  [WS_EVENT.voteSubmitted]: { targetPlayerId: string };
+  [WS_EVENT.votingResults]: VotingResults;
+  [WS_EVENT.roundEnded]: { room: Room };
+  [WS_EVENT.roomClosed]: { reason?: string };
+  [WS_EVENT.error]: ErrorPayload;
+}
